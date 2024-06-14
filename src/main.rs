@@ -1,6 +1,6 @@
-mod game_manger;
+mod game_manager;
 
-use game_manger::{Side, GameManager};
+use game_manager::{ Side, GameManager };
 
 fn main() {
     let mut gm = GameManager::new(Side::WHITE);
