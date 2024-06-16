@@ -45,26 +45,28 @@ impl GameManager {
     }
 
     fn display_board(&self) {
-        println!("           BLACK");
+        println!("          BLACK");
         println!("   +-----------------+");
-        for row_num in 0..8 {
-            let mut line = " ".to_string() + &row_num.to_string();
+        for row_itr in 1..9 {
+            let board_row = (row_itr as i32 - 8).abs() as usize;
 
-            for column in 0..10 {
-                if column == 0 || column == 9 {
+            let mut line = " ".to_string() + &(board_row + 1).to_string();
+
+            for column_itr in 0..10 {
+                if column_itr == 0 || column_itr == 9 {
                     line.push_str(" |");
-
                 }
                 else {
-                    line.push_str(" .");
+                    let board_column = (column_itr as i32 - 8).abs() as usize;
+
+                    line.push(' ');
+                    line.push(self.chess_board.get_piece(board_row, board_column));
                 }
             }
             println!("{}", line);
-            
-
         }
         println!("   +-----------------+");
         println!("     a b c d e f g h");
-        println!("          BLACK");
+        println!("          WHITE");
     }
 }
