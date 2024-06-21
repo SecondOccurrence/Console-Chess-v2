@@ -1,6 +1,8 @@
 mod chess_board;
+mod player;
 
 use chess_board::ChessBoard;
+use player::Player;
 
 #[derive(PartialEq)]
 pub enum Side {
@@ -20,23 +22,28 @@ impl Side {
 pub struct GameManager {
     side: Side,   
     chess_board: ChessBoard,
+    player1: Player,
+    player2: Player,
 }
 
 impl GameManager {
     pub fn new(side: Side) -> GameManager {
         let chess_board = ChessBoard::new();
-        GameManager { side, chess_board }
+        let player1 = Player::new();
+        let player2 = Player::new();
+        GameManager { side, chess_board, player1, player2 }
     }
 
     pub fn run(&mut self) -> bool {
         self.display_board();
 
         if self.side == Side::WHITE {
-            println!("White turn.");
+            _ = self.player1.move_input();
         }
         else {
-            println!("Black turn.");
+            _ = self.player2.move_input();
         }
+
         // TODO: feature: add user input for move
 
         self.side.switch();
