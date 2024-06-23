@@ -1,4 +1,4 @@
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum Side {
     WHITE,
     BLACK,

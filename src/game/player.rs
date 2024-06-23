@@ -1,17 +1,51 @@
-use crate::game::pieces::piece::Position;
-use crate::game::pieces::piece_type::PieceType;
-
+use crate::game::side::Side;
+use crate::game::pieces::*;
 use std::collections::HashMap;
 use std::io;
 
 pub struct Player {
+    side: Side,
     pieces: HashMap<Position, PieceType>,
+    
 }
 
 impl Player {
-    pub fn new() -> Player {
-        let pieces = HashMap::new();
-        Player { pieces }
+    pub fn new(side: Side) -> Player {
+        let pieces = Player::init_pieces(&side);
+        Player { side, pieces }
+    }
+
+    fn init_pieces(side: &Side) -> HashMap<Position, PieceType> {
+
+        let mut pos_y: i8;
+        let increment: i8;
+
+        if *side == Side::WHITE {
+            pos_y = 0;
+            increment = 1;
+        }
+        else {
+            pos_y = 7;
+            increment = -1;
+        }
+
+        let mut map = HashMap::new();
+
+        map.insert(Position { x: 0, y: pos_y }, PieceType::Rook(Rook::new(*side)));
+        map.insert(Position { x: 7, y: pos_y }, PieceType::Rook(Rook::new(*side)));
+        map.insert(Position { x: 1, y: pos_y }, PieceType::Knight(Knight::new(*side)));
+        map.insert(Position { x: 6, y: pos_y }, PieceType::Knight(Knight::new(*side)));
+        map.insert(Position { x: 5, y: pos_y }, PieceType::Bishop(Bishop::new(*side)));
+        map.insert(Position { x: 4, y: pos_y }, PieceType::Bishop(Bishop::new(*side)));
+        map.insert(Position { x: 3, y: pos_y }, PieceType::Queen(Queen::new(*side)));
+        map.insert(Position { x: 2, y: pos_y }, PieceType::King(King::new(*side)));
+
+        pos_y = pos_y + increment;
+        for pawn_x_pos in 0..8 {
+            map.insert(Position { x: pawn_x_pos, y: pos_y}, PieceType::Pawn(Pawn::new(*side)));
+        }
+
+        return map;
     }
 
     // TODO: Assign pieces to the player at different coordinates

@@ -1,6 +1,9 @@
+
+
+#[derive(Debug, PartialEq, Eq, Hash)]
 pub struct Position {
-    pub x: u8,
-    pub y: u8,
+    pub x: i8,
+    pub y: i8,
 }
 
 pub trait Piece {

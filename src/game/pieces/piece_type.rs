@@ -1,6 +1,15 @@
+use crate::game::pieces::king::King;
+use crate::game::pieces::queen::Queen;
+use crate::game::pieces::rook::Rook;
+use crate::game::pieces::bishop::Bishop;
+use crate::game::pieces::knight::Knight;
 use crate::game::pieces::pawn::Pawn;
 
-// TODO: Create all piece types with new function and stub trait methods
 pub enum PieceType {
+    King(King),
+    Queen(Queen),
+    Rook(Rook),
+    Bishop(Bishop),
+    Knight(Knight),
     Pawn(Pawn),
 }
