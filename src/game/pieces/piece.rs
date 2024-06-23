@@ -1,8 +1,8 @@
 pub struct Position {
-    x: u8,
-    y: u8,
+    pub x: u8,
+    pub y: u8,
 }
 
 pub trait Piece {
-    // define methods    
+    fn validate_move(new_move: &str) -> bool;
 }

@@ -14,6 +14,9 @@ impl Player {
         Player { pieces }
     }
 
+    // TODO: Assign pieces to the player at different coordinates
+    // TODO: Get input -> Validate input -> Move Piece
+
     pub fn move_input(&self) -> String {
         let mut new_move = String::new();
         let mut valid = false;
