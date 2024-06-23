@@ -8,6 +8,8 @@ fn main() {
     let mut quit = false;
 
     while !quit {
+        print!("{}[2J", 27 as char);
+        print!("{}[1;1H", 27 as char);
         quit = gm.run();
     }
 

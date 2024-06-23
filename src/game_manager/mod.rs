@@ -38,17 +38,21 @@ impl GameManager {
         self.display_board();
 
         if self.side == Side::WHITE {
+            println!("White Move:");
             _ = self.player1.move_input();
         }
         else {
+            println!("Black Move:");
             _ = self.player2.move_input();
         }
 
         // TODO: feature: add user input for move
 
         self.side.switch();
+        print!("{}[2J", 27 as char);
+        print!("{}[1;1H", 27 as char);
 
-        true
+        return false;
     }
 
     fn display_board(&self) {

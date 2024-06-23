@@ -11,14 +11,18 @@ impl Player {
 
     pub fn move_input(&self) -> String {
         let mut new_move = String::new();
+        let mut valid = false;
 
-        println!("White move:");
-        io::stdin().read_line(&mut new_move).expect("uhh");
-        new_move = new_move.trim().to_string();
+        while valid == false {
+            io::stdin().read_line(&mut new_move).expect("uhh");
+            new_move = new_move.trim().to_string();
+            valid = self.validate_input(&new_move);
 
-        let valid = self.validate_input(&new_move);
-
-        println!("Move is {}", valid);
+            if valid == false {
+                println!("Invalid move. Try again.");
+                new_move = String::new();
+            }
+        }
 
         return new_move;
     }
