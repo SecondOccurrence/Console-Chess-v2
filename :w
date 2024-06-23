@@ -1,23 +1,6 @@
-mod chess_board;
-mod player;
-
-use chess_board::ChessBoard;
-use player::Player;
-
-#[derive(PartialEq)]
-pub enum Side {
-    WHITE,
-    BLACK,
-}
-
-impl Side {
-    fn switch(&mut self) {
-        *self = match *self {
-            Side::WHITE => Side::BLACK,
-            Side::BLACK => Side::WHITE,
-        };
-    }
-}
+use crate::game::side;
+use crate::game::player::Player;
+use crate::game::chess_board::ChessBoard;
 
 pub struct GameManager {
     side: Side,   
@@ -27,7 +10,8 @@ pub struct GameManager {
 }
 
 impl GameManager {
-    pub fn new(side: Side) -> GameManager {
+    pub fn new() -> GameManager {
+        let side = Side::WHITE;
         let chess_board = ChessBoard::new();
         let player1 = Player::new();
         let player2 = Player::new();
@@ -45,8 +29,6 @@ impl GameManager {
             println!("Black Move:");
             _ = self.player2.move_input();
         }
-
-        // TODO: feature: add user input for move
 
         self.side.switch();
         print!("{}[2J", 27 as char);

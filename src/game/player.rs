@@ -1,12 +1,17 @@
+use crate::game::pieces::piece::Position;
+use crate::game::pieces::piece_type::PieceType;
+
+use std::collections::HashMap;
 use std::io;
 
 pub struct Player {
-    // current pieces map key coord value piece char
+    pieces: HashMap<Position, PieceType>,
 }
 
 impl Player {
     pub fn new() -> Player {
-        Player {}
+        let pieces = HashMap::new();
+        Player { pieces }
     }
 
     pub fn move_input(&self) -> String {
