@@ -50,22 +50,21 @@ impl Player {
 
     // TODO: Get input -> Validate input -> Move Piece
 
-    pub fn move_input(&self) -> String {
-        let mut new_move = String::new();
-        let mut valid = false;
-
-        while valid == false {
-            io::stdin().read_line(&mut new_move).expect("uhh");
+    pub fn move_input(&self) -> Position {
+        loop {
+            let mut new_move = String::new();
+            io::stdin().read_line(&mut new_move).expect("Failed to read move");
             new_move = new_move.trim().to_string();
-            valid = self.validate_input(&new_move);
 
-            if valid == false {
+            let (initial_pos, result_pos) = self.validate_input(&new_move);
+
+            if initial_pos.x == -1 {
                 println!("Invalid move. Try again.");
-                new_move = String::new();
+                continue;
             }
-        }
 
-        return new_move;
+            return result_pos;
+        }
     }
 
     pub fn piece_at_coord(&self, pos: &Position) -> bool {
@@ -76,9 +75,12 @@ impl Player {
         return found;
     }
 
-    fn validate_input(&self, input: &str) -> bool {
+    fn validate_input(&self, input: &str) -> (Position, Position) {
+        let mut old_pos = Position { x: -1, y: -1 };
+        let mut new_pos = Position { x: -1, y: -1 };
+
         if input.len() != 4 { 
-            return false;
+            return (old_pos, new_pos);
         }
 
         let (initial_coord, result_coord) = input.split_at(2);
@@ -86,20 +88,26 @@ impl Player {
         let initial_valid = self.validate_coordinate(&initial_coord);
         let result_valid = self.validate_coordinate(&result_coord);
 
-        let valid;
-        if !(initial_valid && result_valid) {
-            valid = false;
-        }
-        else {
-            let pos_x_letter = input.chars().nth(0).unwrap();
-            let pos_x = (pos_x_letter as u8 - b'a') as i8;
-            let pos_y = input.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+        if initial_valid && result_valid {
+            let old_pos_x_letter = initial_coord.chars().nth(0).unwrap();
 
-            let position = Position { x: pos_x, y: pos_y };
-            valid = self.piece_at_coord(&position);
+            let old_pos_x = (old_pos_x_letter as u8 - b'a') as i8;
+            let old_pos_y = input.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+            let temp_pos = Position { x: old_pos_x, y: old_pos_y };
+
+            let valid = self.piece_at_coord(&temp_pos);
+            if valid {
+                old_pos = temp_pos;
+
+                let new_pos_x_letter = result_coord.chars().nth(0).unwrap();
+
+                let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
+                let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+                new_pos = Position { x: new_pos_x, y: new_pos_y };
+            }
         }
 
-        return valid;
+        return (old_pos, new_pos);
     }
 
     fn validate_coordinate(&self, coord: &str) -> bool {
