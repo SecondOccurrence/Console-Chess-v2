@@ -50,7 +50,7 @@ impl Player {
 
     // TODO: Get input -> Validate input -> Move Piece
 
-    pub fn move_input(&self) -> Position {
+    pub fn move_input(&self) -> (Position, Position) {
         loop {
             let mut new_move = String::new();
             io::stdin().read_line(&mut new_move).expect("Failed to read move");
@@ -63,7 +63,7 @@ impl Player {
                 continue;
             }
 
-            return result_pos;
+            return (initial_pos, result_pos);
         }
     }
 
@@ -85,26 +85,29 @@ impl Player {
 
         let (initial_coord, result_coord) = input.split_at(2);
 
-        let initial_valid = self.validate_coordinate(&initial_coord);
-        let result_valid = self.validate_coordinate(&result_coord);
-
-        if initial_valid && result_valid {
+        if self.validate_coordinate(&initial_coord) && self.validate_coordinate(&result_coord) {
             let old_pos_x_letter = initial_coord.chars().nth(0).unwrap();
+            let new_pos_x_letter = result_coord.chars().nth(0).unwrap();
 
             let old_pos_x = (old_pos_x_letter as u8 - b'a') as i8;
-            let old_pos_y = input.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
-            let temp_pos = Position { x: old_pos_x, y: old_pos_y };
+            let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
 
-            let valid = self.piece_at_coord(&temp_pos);
-            if valid {
-                old_pos = temp_pos;
+            let old_pos_y = initial_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+            let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
 
-                let new_pos_x_letter = result_coord.chars().nth(0).unwrap();
+            let temp_old_pos = Position { x: old_pos_x, y: old_pos_y };
+            let temp_new_pos = Position { x: new_pos_x, y: new_pos_y };
 
-                let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
-                let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
-                new_pos = Position { x: new_pos_x, y: new_pos_y };
+            if self.piece_at_coord(&temp_old_pos) && !self.piece_at_coord(&temp_new_pos) {
+                old_pos = temp_old_pos;
+                new_pos = temp_new_pos;
             }
+            else {
+                println!("Move must be performed on your piece \nMove must not land on another piece of yours.");
+            }
+        }
+        else {
+            println!("Be sure the move lies within the board coordinates");
         }
 
         return (old_pos, new_pos);

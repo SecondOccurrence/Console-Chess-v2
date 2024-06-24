@@ -21,11 +21,12 @@ impl GameManager {
     pub fn run(&mut self) -> bool {
         self.display_board();
 
-        // TODO: get valid input on the players side
-        // TODO: validate coordinate on opposing side
         if self.current_side == Side::WHITE {
             println!("White Move:");
+            // return tuple new position old position
             _ = self.player1.move_input();
+            // apply the move
+            // TODO: take opponent piece
         }
         else {
             println!("Black Move:");
