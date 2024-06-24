@@ -1,18 +1,17 @@
 use crate::game::side::Side;
 use crate::game::pieces::*;
+
 use std::collections::HashMap;
 use std::io;
 
 pub struct Player {
-    side: Side,
     pieces: HashMap<Position, PieceType>,
-    
 }
 
 impl Player {
     pub fn new(side: Side) -> Player {
         let pieces = Player::init_pieces(&side);
-        Player { side, pieces }
+        Player { pieces }
     }
 
     fn init_pieces(side: &Side) -> HashMap<Position, PieceType> {
@@ -48,8 +47,6 @@ impl Player {
         return map;
     }
 
-    // TODO: Get input -> Validate input -> Move Piece
-
     pub fn move_input(&self) -> (Position, Position) {
         loop {
             let mut new_move = String::new();
@@ -58,6 +55,7 @@ impl Player {
 
             let (initial_pos, result_pos) = self.validate_input(&new_move);
 
+            // x = -1 only exists when theres invalid input
             if initial_pos.x == -1 {
                 println!("Invalid move. Try again.");
                 continue;
@@ -67,12 +65,22 @@ impl Player {
         }
     }
 
+    // TODO: refactor to contains key
     pub fn piece_at_coord(&self, pos: &Position) -> bool {
         let mut found = false;
         if let Some(_value) = self.pieces.get(pos) {
             found = true;
         }
         return found;
+    }
+
+    pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
+        assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
+
+        let piece = self.pieces.remove(initial_pos).unwrap();
+
+        self.pieces.insert(*result_pos, piece);
+        println!("piece moved");
     }
 
     fn validate_input(&self, input: &str) -> (Position, Position) {
