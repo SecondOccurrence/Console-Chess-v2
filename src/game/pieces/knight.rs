@@ -2,12 +2,19 @@ use crate::game::side::Side;
 use crate::game::pieces::piece::*;
 
 pub struct Knight {
+    pub icon: char,
+
     side: Side,
 }
 
 impl Knight {
     pub fn new(side: Side) -> Knight {
-        Knight { side }
+        let icon = match side {
+            Side::WHITE => 'n',
+            Side::BLACK => 'N',
+        };
+
+        Knight { side, icon }
     }
 }
 

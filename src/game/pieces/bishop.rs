@@ -2,14 +2,19 @@ use crate::game::side::Side;
 use crate::game::pieces::piece::*;
 
 pub struct Bishop {
+    pub icon: char,
+
     side: Side,
-    position: Position,
 }
 
 impl Bishop {
     pub fn new(side: Side) -> Bishop {
-        let position = Position { x: 9, y: 9 };
-        Bishop { side, position }
+        let icon = match side {
+            Side::WHITE => 'b',
+            Side::BLACK => 'B',
+        };
+
+        Bishop { icon, side }
     }
 }
 

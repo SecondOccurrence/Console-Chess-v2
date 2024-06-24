@@ -35,9 +35,9 @@ impl Player {
         map.insert(Position { x: 1, y: pos_y }, PieceType::Knight(Knight::new(*side)));
         map.insert(Position { x: 6, y: pos_y }, PieceType::Knight(Knight::new(*side)));
         map.insert(Position { x: 5, y: pos_y }, PieceType::Bishop(Bishop::new(*side)));
-        map.insert(Position { x: 4, y: pos_y }, PieceType::Bishop(Bishop::new(*side)));
+        map.insert(Position { x: 2, y: pos_y }, PieceType::Bishop(Bishop::new(*side)));
         map.insert(Position { x: 3, y: pos_y }, PieceType::Queen(Queen::new(*side)));
-        map.insert(Position { x: 2, y: pos_y }, PieceType::King(King::new(*side)));
+        map.insert(Position { x: 4, y: pos_y }, PieceType::King(King::new(*side)));
 
         pos_y = pos_y + increment;
         for pawn_x_pos in 0..8 {
@@ -83,6 +83,10 @@ impl Player {
         println!("piece moved");
     }
 
+    pub fn pieces(&self) -> &HashMap<Position, PieceType> {
+        return &self.pieces;
+    }
+
     fn validate_input(&self, input: &str) -> (Position, Position) {
         let mut old_pos = Position { x: -1, y: -1 };
         let mut new_pos = Position { x: -1, y: -1 };
@@ -99,6 +103,7 @@ impl Player {
 
             let old_pos_x = (old_pos_x_letter as u8 - b'a') as i8;
             let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
+
 
             let old_pos_y = initial_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
             let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;

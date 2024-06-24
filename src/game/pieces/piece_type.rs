@@ -13,3 +13,18 @@ pub enum PieceType {
     Knight(Knight),
     Pawn(Pawn),
 }
+
+impl PieceType {
+    pub fn icon(&self) -> char {
+        let character = match self {
+            PieceType::King(king) => king.icon,
+            PieceType::Queen(queen) => queen.icon,
+            PieceType::Rook(rook) => rook.icon,
+            PieceType::Bishop(bishop) => bishop.icon,
+            PieceType::Knight(knight) => knight.icon,
+            PieceType::Pawn(pawn) => pawn.icon,
+        };
+
+        return character;
+    }
+}

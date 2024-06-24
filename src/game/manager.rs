@@ -39,7 +39,7 @@ impl GameManager {
         self.players[side_index].apply_move(&initial_position, &result_position);
 
         self.current_side.switch();
-        // TODO: update the board
+        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
 
         // clear the console screen through ANSI codes
         print!("{}[2J", 27 as char);
@@ -56,17 +56,13 @@ impl GameManager {
 
             let mut line = " ".to_string() + &(board_row + 1).to_string();
 
-            for column_itr in 0..10 {
-                if column_itr == 0 || column_itr == 9 {
-                    line.push_str(" |");
-                }
-                else {
-                    let board_column = (column_itr as i32 - 8).abs() as usize;
-
-                    line.push(' ');
-                    line.push(self.chess_board.get_piece(board_row, board_column));
-                }
+            line.push_str(" | ");
+            for column_itr in 0..8 {
+                let piece = self.chess_board.get_piece(board_row, column_itr);
+                line.push(piece);
+                line.push(' ');
             }
+            line.push('|');
             println!("{}", line);
         }
         println!("   +-----------------+");
