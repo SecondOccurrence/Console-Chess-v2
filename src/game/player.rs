@@ -48,7 +48,6 @@ impl Player {
         return map;
     }
 
-    // TODO: Assign pieces to the player at different coordinates
     // TODO: Get input -> Validate input -> Move Piece
 
     pub fn move_input(&self) -> String {
@@ -69,19 +68,35 @@ impl Player {
         return new_move;
     }
 
+    pub fn piece_at_coord(&self, pos: &Position) -> bool {
+        let mut found = false;
+        if let Some(_value) = self.pieces.get(pos) {
+            found = true;
+        }
+        return found;
+    }
+
     fn validate_input(&self, input: &str) -> bool {
         if input.len() != 4 { 
             return false;
         }
 
-        let mut valid = true;
         let (initial_coord, result_coord) = input.split_at(2);
 
         let initial_valid = self.validate_coordinate(&initial_coord);
         let result_valid = self.validate_coordinate(&result_coord);
 
+        let valid;
         if !(initial_valid && result_valid) {
             valid = false;
+        }
+        else {
+            let pos_x_letter = input.chars().nth(0).unwrap();
+            let pos_x = (pos_x_letter as u8 - b'a') as i8;
+            let pos_y = input.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+
+            let position = Position { x: pos_x, y: pos_y };
+            valid = self.piece_at_coord(&position);
         }
 
         return valid;

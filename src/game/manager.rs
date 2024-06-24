@@ -21,6 +21,8 @@ impl GameManager {
     pub fn run(&mut self) -> bool {
         self.display_board();
 
+        // TODO: get valid input on the players side
+        // TODO: validate coordinate on opposing side
         if self.current_side == Side::WHITE {
             println!("White Move:");
             _ = self.player1.move_input();
@@ -29,6 +31,8 @@ impl GameManager {
             println!("Black Move:");
             _ = self.player2.move_input();
         }
+
+        // TODO: update the coordinates of the piece at position
 
         self.current_side.switch();
         print!("{}[2J", 27 as char);
