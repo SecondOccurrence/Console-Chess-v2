@@ -53,7 +53,12 @@ impl Player {
             io::stdin().read_line(&mut new_move).expect("Failed to read move");
             new_move = new_move.trim().to_string();
 
-            let (initial_pos, result_pos) = self.validate_input(&new_move);
+            let (mut initial_pos, mut result_pos) = (Position { x: -2, y: -2 }, Position { x: -2, y: -2 });
+            if new_move != "menu" {
+                let (temp_initial_pos, temp_result_pos) = self.validate_input(&new_move);
+                initial_pos = temp_initial_pos;
+                result_pos = temp_result_pos;
+            }
 
             // x = -1 only exists when theres invalid input
             if initial_pos.x == -1 {

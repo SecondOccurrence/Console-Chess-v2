@@ -1,7 +1,7 @@
 use crate::game::side::Side;
 use crate::game::player::Player;
 use crate::game::chess_board::ChessBoard;
-use crate::game::pieces::Position;
+use crate::game::menu::MenuFunctions;
 
 pub struct GameManager {
     current_side: Side,   
@@ -31,12 +31,17 @@ impl GameManager {
         }
 
         let (initial_position, result_position) = self.players[side_index].move_input();
+        if initial_position.x != -2 {
+            if self.players[side_index].piece_at_coord(&result_position) {
+                // TODO: update piece counter as piece has been taken             
+            }
 
-        if self.players[side_index].piece_at_coord(&result_position) {
-            // TODO: update piece counter as piece has been taken             
+            self.players[side_index].apply_move(&initial_position, &result_position);
         }
-
-        self.players[side_index].apply_move(&initial_position, &result_position);
+        else {
+            self.show_menu();
+            // enter the menu
+        }
 
         self.current_side.switch();
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
@@ -68,5 +73,15 @@ impl GameManager {
         println!("   +-----------------+");
         println!("     a b c d e f g h");
         println!("          WHITE");
+    }
+}
+
+impl MenuFunctions for GameManager {
+    fn show_menu(&self) {
+        println!("Show Menu");
+        // TODO: show brief explaination.
+        // TODO: implement help menu
+        // TODO: exit on 'exit' at any time?
+        // TODO: enter menu options after next input
     }
 }
