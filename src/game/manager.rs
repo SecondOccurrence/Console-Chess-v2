@@ -58,10 +58,10 @@ impl GameManager {
                 io::stdin().read_line(&mut option).expect("Failed to read move");
                 option = option.trim().to_string();
 
-                self.perform_command(&option);
-
-
-                if option == "exit" {
+                if option != "exit" {
+                    self.perform_command(&option);
+                }
+                else {
                     break;
                 }
             }
