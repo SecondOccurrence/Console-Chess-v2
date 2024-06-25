@@ -4,6 +4,7 @@ use crate::game::chess_board::ChessBoard;
 use crate::game::menu::MenuFunctions;
 
 use std::io;
+use std::vec;
 
 pub struct GameManager {
     current_side: Side,   
@@ -98,8 +99,26 @@ impl MenuFunctions for GameManager {
 
     fn perform_command(&self, option: &str) {
         match option {
+            "help" => self.help_menu(),
+            "pieces" => self.show_pieces_count(),
             "exit" => println!("Exiting menu.."),
             _ => println!("'{}' is not a valid option", option),
         }
+    }
+
+    fn help_menu(&self) {
+        // TODO: add new print for each available command
+    }
+
+    // TODO: turn into game summary function "sum"
+    fn show_pieces_count(&self) {
+        println!("\nRemaining Pieces:");
+        let white_pieces = self.players[0].pieces();
+        let white_tally = self.tally_pieces(white_pieces);
+        println!("White side: {:?}", white_tally);
+
+        let black_pieces = self.players[1].pieces();
+        let black_tally = self.tally_pieces(black_pieces);
+        println!("Black side: {:?}\n", black_tally);
     }
 }
