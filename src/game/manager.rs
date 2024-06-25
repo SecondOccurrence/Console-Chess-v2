@@ -3,6 +3,8 @@ use crate::game::player::Player;
 use crate::game::chess_board::ChessBoard;
 use crate::game::menu::MenuFunctions;
 
+use std::io;
+
 pub struct GameManager {
     current_side: Side,   
     chess_board: ChessBoard,
@@ -31,20 +33,32 @@ impl GameManager {
         }
 
         let (initial_position, result_position) = self.players[side_index].move_input();
+        // returns -2 if user wishes to enter the menu
         if initial_position.x != -2 {
             if self.players[side_index].piece_at_coord(&result_position) {
                 // TODO: update piece counter as piece has been taken             
             }
 
             self.players[side_index].apply_move(&initial_position, &result_position);
+
+            self.current_side.switch();
+            self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
         }
         else {
             self.show_menu();
-            // enter the menu
-        }
 
-        self.current_side.switch();
-        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
+            loop {
+                let mut option = String::new();
+                io::stdin().read_line(&mut option).expect("Failed to read move");
+                option = option.trim().to_string();
+
+                self.perform_command(&option);
+
+                if option == "exit" {
+                    break;
+                }
+            }
+        }
 
         // clear the console screen through ANSI codes
         print!("{}[2J", 27 as char);
@@ -78,10 +92,14 @@ impl GameManager {
 
 impl MenuFunctions for GameManager {
     fn show_menu(&self) {
-        println!("Show Menu");
-        // TODO: show brief explaination.
-        // TODO: implement help menu
-        // TODO: exit on 'exit' at any time?
-        // TODO: enter menu options after next input
+        println!("-- menu --");
+        println!("enter choice");
+    }
+
+    fn perform_command(&self, option: &str) {
+        match option {
+            "exit" => println!("Exiting menu.."),
+            _ => println!("'{}' is not a valid option", option),
+        }
     }
 }
