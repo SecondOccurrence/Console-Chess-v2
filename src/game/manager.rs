@@ -5,12 +5,11 @@ use crate::game::menu::MenuFunctions;
 use crate::game::pieces::{ Position, PieceType };
 
 use std::io;
+use std::io::Write;
 use std::collections::HashMap;
-use std::path::Path;
 use std::path::PathBuf;
 use std::fs;
 use std::fs::File;
-use std::io::Read;
 
 pub struct GameManager {
     current_side: Side,   
@@ -118,6 +117,7 @@ impl MenuFunctions for GameManager {
             "show" => self.display_board(),
             "pieces" => self.show_pieces_count(),
             "import" => self.import_game(),
+            "export" => self.export_game(),
             "clear" => {
                 // clear the console screen through ANSI codes
                 print!("{}[2J", 27 as char);
@@ -136,6 +136,7 @@ impl MenuFunctions for GameManager {
         println!("\"show\"   => shows the current board state");
         println!("\"pieces\" => shows remaining pieces left on both sides");
         println!("\"import\" => creates a new game provided a save file using a FEN string");
+        println!("\"export\" => saves the current game");
         println!("\"clear\"  => clears the screen to show a clean menu");
         println!("\"exit\"   => return to the game");
         println!("-- END --");
@@ -167,16 +168,21 @@ impl MenuFunctions for GameManager {
         return counter;
     }
 
-    // TODO: import game history?
-    fn import_game(&mut self) {
-        let save_states_path = dirs::home_dir()
+    fn get_save_path() -> PathBuf {
+        let path = dirs::home_dir()
             .expect("Failed to get your home directory");
-        let save_states_path = save_states_path.join(".console-chess").join("saves");
-        if !save_states_path.exists() {
-            fs::create_dir_all(&save_states_path)
+        let path = path.join(".console-chess").join("saves");
+        if !path.exists() {
+            fs::create_dir_all(&path)
                 .expect("Failed to create the save states folder");
         }
 
+        return path;
+    }
+
+    // TODO: import game history?
+    fn import_game(&mut self) {
+        let save_states_path = GameManager::get_save_path();
         let save_file_path = GameManager::retrieve_save_file(&save_states_path);
 
         let file_contents = fs::read_to_string(save_file_path)
@@ -243,7 +249,75 @@ impl MenuFunctions for GameManager {
             row -= 1;
             cell = 0;
         }
-
         println!("Finished loading save.\n-- END --\n");
+    }
+
+    fn export_game(&self) {
+        let board_state = self.export_board();
+        GameManager::create_save(&board_state);
+        println!("Finished creating save file.\n -- END --\n");
+    }
+
+    fn export_board(&self) -> String {
+        let mut fen_string = String::new();
+        for row in (0..8).rev() {
+            let mut line = String::new();
+            let mut empty = 0;
+            for col in 0..8 {
+                let cell = self.chess_board.get_piece(row, col);
+
+                if cell == '.' {
+                    empty += 1;
+                }
+                else {
+                    if empty != 0 {
+                        line.push_str(&empty.to_string());
+                        empty = 0;
+                    }
+                    line.push(cell);
+                }
+            }
+
+            if empty != 0 {
+                line.push_str(&empty.to_string());
+            }
+
+            fen_string.push_str(&line);
+            if row > 0 {
+                fen_string.push('/');
+            }
+        }
+        return fen_string;
+    }
+
+    fn create_save(board_state: &str) {
+        let mut save_states_path = GameManager::get_save_path();
+
+        println!("Enter the name to give the save:");
+        println!("(save files are stored in: {})", save_states_path.display());
+
+        loop {
+            let mut save_name = String::new();
+            io::stdin().read_line(&mut save_name)
+                .expect("Failed to read the save name");
+            save_name = save_name.trim().to_string();
+            save_name.push_str(".fen");
+
+            let temp_save_path = save_states_path.clone().join(save_name.clone());
+            if !temp_save_path.exists() {
+                save_states_path = save_states_path.join(save_name);
+            }
+            else {
+                println!("Save already exists under that name");
+                continue;
+            }
+
+            break;
+        }
+
+        let mut save_file = File::create(save_states_path)
+            .expect("Failed to create the save");
+        save_file.write_all(board_state.as_bytes())
+            .expect("Failed to write the save to the file");
     }
 }
