@@ -48,13 +48,13 @@ impl GameManager {
 
             self.players[side_index].apply_move(&initial_position, &result_position);
 
+            self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
             self.current_side.switch();
         }
         else {
             // clear the console screen through ANSI codes
             print!("{}[2J", 27 as char);
             print!("{}[1;1H", 27 as char);
-            self.display_board();
 
             GameManager::show_menu();
             loop {
@@ -73,7 +73,6 @@ impl GameManager {
             }
         }
 
-        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
         // clear the console screen through ANSI codes
         print!("{}[2J", 27 as char);
         print!("{}[1;1H", 27 as char);
@@ -116,8 +115,15 @@ impl MenuFunctions for GameManager {
     fn perform_command(&mut self, option: &str) {
         match option {
             "help" => self.help_menu(),
+            "show" => self.display_board(),
             "pieces" => self.show_pieces_count(),
             "import" => self.import_game(),
+            "clear" => {
+                // clear the console screen through ANSI codes
+                print!("{}[2J", 27 as char);
+                print!("{}[1;1H", 27 as char);
+                GameManager::show_menu();
+            }
             "exit" => println!("Exiting menu.."),
             _ => println!("'{}' is not a valid option", option),
         }
@@ -127,8 +133,11 @@ impl MenuFunctions for GameManager {
         println!("\n-- help menu --");
         println!("the following commands will do the following...\n");
         println!("\"help\"   => shows this");
+        println!("\"show\"   => shows the current board state");
         println!("\"pieces\" => shows remaining pieces left on both sides");
         println!("\"import\" => creates a new game provided a save file using a FEN string");
+        println!("\"clear\"  => clears the screen to show a clean menu");
+        println!("\"exit\"   => return to the game");
         println!("-- END --");
         // TODO: add new print for each available command
     }
@@ -174,6 +183,8 @@ impl MenuFunctions for GameManager {
             .expect("Failed to read the save file.");
 
         self.read_save(&file_contents);
+
+        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
     }
 
     fn retrieve_save_file(path: &PathBuf) -> PathBuf {
@@ -233,6 +244,6 @@ impl MenuFunctions for GameManager {
             cell = 0;
         }
 
-        println!("Finished loading save.");
+        println!("Finished loading save.\n-- END --\n");
     }
 }
