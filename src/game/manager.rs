@@ -49,7 +49,6 @@ impl GameManager {
             self.players[side_index].apply_move(&initial_position, &result_position);
 
             self.current_side.switch();
-            self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
         }
         else {
             // clear the console screen through ANSI codes
@@ -74,6 +73,7 @@ impl GameManager {
             }
         }
 
+        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
         // clear the console screen through ANSI codes
         print!("{}[2J", 27 as char);
         print!("{}[1;1H", 27 as char);
@@ -206,9 +206,33 @@ impl MenuFunctions for GameManager {
         self.players[0].clear_pieces();
         self.players[1].clear_pieces();
 
+        let mut row = 7 as i8;
+        let mut cell = 0 as i8;
+
         let mut split_input = fen_string.split('/');
         while let Some(substring) = split_input.next() {
-            println!("{}", substring);
+            for ch in substring.chars() {
+                if ch.is_digit(10) {
+                    cell += ch.to_digit(10).unwrap() as i8; 
+                }
+                else {
+                    if let Some(piece) = PieceType::convert(ch) {
+                        let side = piece.side();
+                        let pos = Position { x: cell, y: row };
+                        if side == Side::WHITE {
+                            self.players[0].add_piece(pos, piece);
+                        }
+                        else {
+                            self.players[1].add_piece(pos, piece);
+                        }
+                    }
+                    cell += 1;
+                }
+            }
+            row -= 1;
+            cell = 0;
         }
+
+        println!("Finished loading save.");
     }
 }
