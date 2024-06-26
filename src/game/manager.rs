@@ -6,6 +6,11 @@ use crate::game::pieces::{ Position, PieceType };
 
 use std::io;
 use std::collections::HashMap;
+use std::path::Path;
+use std::path::PathBuf;
+use std::fs;
+use std::fs::File;
+use std::io::Read;
 
 pub struct GameManager {
     current_side: Side,   
@@ -98,6 +103,8 @@ impl GameManager {
 }
 
 impl MenuFunctions for GameManager {
+    // TODO: add startup menu 
+    
     fn show_menu() {
         println!("\n-- menu --");
         println!("enter \"exit\" to return to the game");
@@ -151,6 +158,36 @@ impl MenuFunctions for GameManager {
 
     // TODO: import game history?
     fn import_game(&self) {
-        // TODO: import game using FEN string
+        let save_states_path = dirs::home_dir().expect("Failed to get your home directory");
+        let save_states_path = save_states_path.join(".console-chess").join("saves");
+        if !save_states_path.exists() {
+            fs::create_dir_all(&save_states_path).expect("Failed to create the save states folder");
+        }
+
+        let save_file_path = GameManager::retrieve_save_file(&save_states_path);
+
+        println!("{}", save_file_path.display());
+    }
+
+    fn retrieve_save_file(path: &PathBuf) -> PathBuf {
+        let mut file_path: PathBuf;
+        loop {
+            println!("Enter the save file name:");
+            println!("(save files are located in: {})", path.display());
+            let mut file_name = String::new();
+            io::stdin().read_line(&mut file_name).expect("Failed to read move");
+            file_name = file_name.trim().to_string();
+            file_name.push_str(".fen");
+
+            file_path = path.join(file_name); 
+            if let Err(_) = fs::File::open(&file_path) {
+                println!("Save file does not exist.\n");
+                continue;
+            }
+            
+            break;
+        }
+
+        return file_path;
     }
 }
