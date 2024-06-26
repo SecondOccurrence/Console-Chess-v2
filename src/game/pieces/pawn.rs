@@ -10,8 +10,8 @@ pub struct Pawn {
 impl Pawn {
     pub fn new(side: Side) -> Pawn {
         let icon = match side {
-            Side::WHITE => 'p',
-            Side::BLACK => 'P',
+            Side::WHITE => 'P',
+            Side::BLACK => 'p',
         };
 
         Pawn { icon, side }

@@ -10,8 +10,8 @@ pub struct King {
 impl King {
     pub fn new(side: Side) -> King {
         let icon = match side {
-            Side::WHITE => 'k',
-            Side::BLACK => 'K',
+            Side::WHITE => 'K',
+            Side::BLACK => 'k',
         };
 
         King { icon, side }
