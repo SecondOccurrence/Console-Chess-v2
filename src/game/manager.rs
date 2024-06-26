@@ -59,8 +59,10 @@ impl GameManager {
 
             GameManager::show_menu();
             loop {
+                println!("Enter an option:");
                 let mut option = String::new();
-                io::stdin().read_line(&mut option).expect("Failed to read move");
+                io::stdin().read_line(&mut option)
+                    .expect("Failed to read option");
                 option = option.trim().to_string();
 
                 if option != "exit" {
@@ -111,7 +113,7 @@ impl MenuFunctions for GameManager {
         println!("to show a list of available commands, enter \"help\"");
     }
 
-    fn perform_command(&self, option: &str) {
+    fn perform_command(&mut self, option: &str) {
         match option {
             "help" => self.help_menu(),
             "pieces" => self.show_pieces_count(),
@@ -157,25 +159,33 @@ impl MenuFunctions for GameManager {
     }
 
     // TODO: import game history?
-    fn import_game(&self) {
-        let save_states_path = dirs::home_dir().expect("Failed to get your home directory");
+    fn import_game(&mut self) {
+        let save_states_path = dirs::home_dir()
+            .expect("Failed to get your home directory");
         let save_states_path = save_states_path.join(".console-chess").join("saves");
         if !save_states_path.exists() {
-            fs::create_dir_all(&save_states_path).expect("Failed to create the save states folder");
+            fs::create_dir_all(&save_states_path)
+                .expect("Failed to create the save states folder");
         }
 
         let save_file_path = GameManager::retrieve_save_file(&save_states_path);
 
-        println!("{}", save_file_path.display());
+        let file_contents = fs::read_to_string(save_file_path)
+            .expect("Failed to read the save file.");
+
+        self.read_save(&file_contents);
     }
 
     fn retrieve_save_file(path: &PathBuf) -> PathBuf {
+        assert!(path.exists(), "Attempting to retrieve a save file: the path does not exist");
+
         let mut file_path: PathBuf;
         loop {
             println!("Enter the save file name:");
             println!("(save files are located in: {})", path.display());
             let mut file_name = String::new();
-            io::stdin().read_line(&mut file_name).expect("Failed to read move");
+            io::stdin().read_line(&mut file_name)
+                .expect("Failed to read move");
             file_name = file_name.trim().to_string();
             file_name.push_str(".fen");
 
@@ -189,5 +199,16 @@ impl MenuFunctions for GameManager {
         }
 
         return file_path;
+    }
+
+    fn read_save(&mut self, fen_string: &str) {
+        self.chess_board.clear();
+        self.players[0].clear_pieces();
+        self.players[1].clear_pieces();
+
+        let mut split_input = fen_string.split('/');
+        while let Some(substring) = split_input.next() {
+            println!("{}", substring);
+        }
     }
 }

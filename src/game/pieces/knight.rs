@@ -10,8 +10,8 @@ pub struct Knight {
 impl Knight {
     pub fn new(side: Side) -> Knight {
         let icon = match side {
-            Side::WHITE => 'n',
-            Side::BLACK => 'N',
+            Side::WHITE => 'N',
+            Side::BLACK => 'n',
         };
 
         Knight { side, icon }

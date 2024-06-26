@@ -5,13 +5,14 @@ use std::path::PathBuf;
 
 pub trait MenuFunctions {
     fn show_menu();
-    fn perform_command(&self, option: &str);
+    fn perform_command(&mut self, option: &str);
 
     fn help_menu(&self);
 
     fn show_pieces_count(&self);
     fn tally_pieces(pieces: &HashMap<Position, PieceType>) -> HashMap<char, usize>;
 
-    fn import_game(&self);
+    fn import_game(&mut self);
     fn retrieve_save_file(path: &PathBuf) -> PathBuf;
+    fn read_save(&mut self, fen_string: &str);
 }

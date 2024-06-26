@@ -10,8 +10,8 @@ pub struct Bishop {
 impl Bishop {
     pub fn new(side: Side) -> Bishop {
         let icon = match side {
-            Side::WHITE => 'b',
-            Side::BLACK => 'B',
+            Side::WHITE => 'B',
+            Side::BLACK => 'b',
         };
 
         Bishop { icon, side }

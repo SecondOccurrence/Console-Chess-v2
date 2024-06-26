@@ -10,8 +10,8 @@ pub struct Rook {
 impl Rook {
     pub fn new(side: Side) -> Rook {
         let icon = match side {
-            Side::WHITE => 'r',
-            Side::BLACK => 'R',
+            Side::WHITE => 'R',
+            Side::BLACK => 'r',
         };
 
         Rook { icon, side }
