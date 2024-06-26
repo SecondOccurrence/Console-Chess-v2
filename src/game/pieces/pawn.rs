@@ -4,7 +4,7 @@ use crate::game::pieces::piece::*;
 pub struct Pawn {
     pub icon: char,
 
-    side: Side,
+    pub side: Side,
 }
 
 impl Pawn {

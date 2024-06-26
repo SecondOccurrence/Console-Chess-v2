@@ -93,6 +93,13 @@ impl Player {
         return &self.pieces;
     }
 
+    pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
+        assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
+        assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
+
+        self.pieces.insert(pos, piece);
+    }
+
     pub fn clear_pieces(&mut self) {
         self.pieces.clear();
     }

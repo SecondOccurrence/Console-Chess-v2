@@ -4,7 +4,7 @@ use crate::game::pieces::piece::*;
 pub struct Queen {
     pub icon: char,
 
-    side: Side,
+    pub side: Side,
 }
 
 impl Queen {
