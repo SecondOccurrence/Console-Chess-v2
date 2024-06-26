@@ -1,15 +1,24 @@
 use crate::game::pieces::{ Position, PieceType };
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 
 pub trait MenuFunctions {
     fn show_menu();
-    fn perform_command(&self, option: &str);
+    fn perform_command(&mut self, option: &str);
 
     fn help_menu(&self);
 
     fn show_pieces_count(&self);
     fn tally_pieces(pieces: &HashMap<Position, PieceType>) -> HashMap<char, usize>;
 
-    fn import_game(&self);
+    fn get_save_path() -> PathBuf;
+
+    fn import_game(&mut self);
+    fn retrieve_save_file(path: &PathBuf) -> PathBuf;
+    fn read_save(&mut self, fen_string: &str);
+
+    fn export_game(&self);
+    fn export_board(&self) -> String;
+    fn create_save(game_state: &str);
 }

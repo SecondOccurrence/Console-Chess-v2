@@ -50,7 +50,8 @@ impl Player {
     pub fn move_input(&self) -> (Position, Position) {
         loop {
             let mut new_move = String::new();
-            io::stdin().read_line(&mut new_move).expect("Failed to read move");
+            io::stdin().read_line(&mut new_move)
+                .expect("Failed to read move");
             new_move = new_move.trim().to_string();
 
             let (mut initial_pos, mut result_pos) = (Position { x: -2, y: -2 }, Position { x: -2, y: -2 });
@@ -90,6 +91,17 @@ impl Player {
 
     pub fn pieces(&self) -> &HashMap<Position, PieceType> {
         return &self.pieces;
+    }
+
+    pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
+        assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
+        assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
+
+        self.pieces.insert(pos, piece);
+    }
+
+    pub fn clear_pieces(&mut self) {
+        self.pieces.clear();
     }
 
     fn validate_input(&self, input: &str) -> (Position, Position) {

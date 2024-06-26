@@ -4,14 +4,14 @@ use crate::game::pieces::piece::*;
 pub struct Queen {
     pub icon: char,
 
-    side: Side,
+    pub side: Side,
 }
 
 impl Queen {
     pub fn new(side: Side) -> Queen {
         let icon = match side {
-            Side::WHITE => 'q',
-            Side::BLACK => 'Q',
+            Side::WHITE => 'Q',
+            Side::BLACK => 'q',
         };
 
         Queen { icon, side }
