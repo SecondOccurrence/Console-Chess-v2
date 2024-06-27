@@ -65,15 +65,12 @@ impl GameManager {
                     .expect("Failed to read option");
                 option = option.trim().to_string();
 
-                if option == "close" {
-                    leave_game = true;
+                self.perform_command(&option);
+                if option == "exit"{
                     break;
                 }
-
-                if option != "exit" {
-                    self.perform_command(&option);
-                }
-                else {
+                else if option == "close" {
+                    leave_game = true;
                     break;
                 }
             }
@@ -132,8 +129,7 @@ impl MenuFunctions for GameManager {
                 GameManager::show_menu();
             }
             "exit" => println!("Exiting menu.."),
-            // TODO: prompt for save
-            "close" => println!("Closing game.."),
+            "close" => self.begin_close(),
             _ => println!("'{}' is not a valid option", option),
         }
     }
@@ -329,5 +325,27 @@ impl MenuFunctions for GameManager {
             .expect("Failed to create the save");
         save_file.write_all(board_state.as_bytes())
             .expect("Failed to write the save to the file");
+    }
+
+    fn begin_close(&self) {
+        println!("Do you wish to save before closing? (Yy/Nn):");
+        let mut choice = String::new();
+        loop {
+            io::stdin().read_line(&mut choice)
+                .expect("Failed to read choice");
+            choice = choice.trim().to_string();
+
+            if choice != "Y" && choice != "y" && choice != "N" && choice != "n" {
+                println!("Invalid choice. Type 'Y/y' or 'N/n'");
+                choice = String::new();
+            }
+            else {
+                break;
+            }
+        }
+
+        if choice == "Y" || choice == "y" {
+            self.export_game();
+        }
     }
 }
