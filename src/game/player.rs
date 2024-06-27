@@ -73,13 +73,8 @@ impl Player {
         return Some((initial_pos, result_pos));
     }
 
-    // TODO: refactor to contains key
-    pub fn piece_at_coord(&self, pos: &Position) -> bool {
-        let mut found = false;
-        if let Some(_value) = self.pieces.get(pos) {
-            found = true;
-        }
-        return found;
+    pub fn get_piece(&self, pos: &Position) -> Option<&PieceType> {
+        return self.pieces.get(&pos);
     }
 
     pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
@@ -129,11 +124,15 @@ impl Player {
         let old_pos = Position { x: old_pos_x, y: old_pos_y };
         let new_pos = Position { x: new_pos_x, y: new_pos_y };
 
-        if !self.piece_at_coord(&old_pos) {
+        let piece_search = self.get_piece(&old_pos);
+        if let Some(_piece) = piece_search {
+            // TODO: validate possible moves
+        }
+        else if let None = self.get_piece(&old_pos) {
             return Err("Move must be performed on your  piece".to_string());
         }
 
-        if self.piece_at_coord(&new_pos) {
+        if let Some(_) = self.get_piece(&new_pos) {
             return Err("Move must not land on another piece of yours.".to_string());
         }
 

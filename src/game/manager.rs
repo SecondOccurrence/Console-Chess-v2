@@ -42,7 +42,8 @@ impl GameManager {
 
         let player_move = self.players[side_index].move_input();
         if let Some((initial_position, result_position)) = player_move {
-            if self.players[side_index].piece_at_coord(&result_position) {
+            // TODO: side_index might not be correct. might be opposite
+            if let Some(_piece) = self.players[side_index].get_piece(&result_position) {
                 // TODO: print piece taken inform
             }
 
