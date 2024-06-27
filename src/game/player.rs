@@ -125,8 +125,10 @@ impl Player {
         let new_pos = Position { x: new_pos_x, y: new_pos_y };
 
         let piece_search = self.get_piece(&old_pos);
-        if let Some(_piece) = piece_search {
-            // TODO: validate possible moves
+        if let Some(piece) = piece_search {
+            if !piece.validate_move(&old_pos, &new_pos) {
+                return Err("Move cannot be performed on your selected piece".to_string()); 
+            }
         }
         else if let None = self.get_piece(&old_pos) {
             return Err("Move must be performed on your  piece".to_string());

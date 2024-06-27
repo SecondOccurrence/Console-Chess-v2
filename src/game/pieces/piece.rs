@@ -5,5 +5,5 @@ pub struct Position {
 }
 
 pub trait Piece {
-    fn validate_move(new_move: &str) -> bool;
+    fn validate_move(old_pos: &Position, new_pos: &Position) -> bool;
 }

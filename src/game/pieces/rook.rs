@@ -19,7 +19,7 @@ impl Rook {
 }
 
 impl Piece for Rook {
-    fn validate_move(new_move: &str) -> bool {
+    fn validate_move(old_pos: &Position, new_pos: &Position) -> bool {
         // TODO: generate all possible moves for this piece. Compare with move.
         // TODO: Turn move to Position, use position comparison
         return true;
