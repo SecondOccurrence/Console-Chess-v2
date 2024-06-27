@@ -27,6 +27,8 @@ impl GameManager {
     }
 
     pub fn run(&mut self) -> bool {
+        let mut leave_game = false;
+
         self.display_board();
 
         let side_index = self.current_side.to_index();
@@ -63,6 +65,11 @@ impl GameManager {
                     .expect("Failed to read option");
                 option = option.trim().to_string();
 
+                if option == "close" {
+                    leave_game = true;
+                    break;
+                }
+
                 if option != "exit" {
                     self.perform_command(&option);
                 }
@@ -76,7 +83,7 @@ impl GameManager {
         print!("{}[2J", 27 as char);
         print!("{}[1;1H", 27 as char);
 
-        return false;
+        return leave_game;
     }
 
     fn display_board(&self) {
@@ -125,6 +132,8 @@ impl MenuFunctions for GameManager {
                 GameManager::show_menu();
             }
             "exit" => println!("Exiting menu.."),
+            // TODO: prompt for save
+            "close" => println!("Closing game.."),
             _ => println!("'{}' is not a valid option", option),
         }
     }
@@ -139,6 +148,7 @@ impl MenuFunctions for GameManager {
         println!("\"export\" => saves the current game");
         println!("\"clear\"  => clears the screen to show a clean menu");
         println!("\"exit\"   => return to the game");
+        println!("\"close\"  => close the chess game");
         println!("-- END --");
         // TODO: add new print for each available command
     }
