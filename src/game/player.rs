@@ -47,8 +47,8 @@ impl Player {
         return map;
     }
 
-    pub fn move_input(&self) -> (Position, Position) {
-        let (mut initial_pos, mut result_pos) = (Position { x: -1, y: -1 }, Position { x: -1, y: -1 });
+    pub fn move_input(&self) -> Option<(Position, Position)> {
+        let (initial_pos, result_pos): (Position, Position);
         loop {
             let mut new_move = String::new();
             io::stdin().read_line(&mut new_move)
@@ -56,7 +56,7 @@ impl Player {
             new_move = new_move.trim().to_string();
 
             if new_move == "menu" {
-                break;
+                return None;
             }
 
             let validation = self.validate_input(&new_move);
@@ -70,7 +70,7 @@ impl Player {
             }
         }
 
-        return (initial_pos, result_pos);
+        return Some((initial_pos, result_pos));
     }
 
     // TODO: refactor to contains key

@@ -40,9 +40,8 @@ impl GameManager {
             println!("\nBlack Move:");
         }
 
-        let (initial_position, result_position) = self.players[side_index].move_input();
-        // returns -1 if user wishes to enter the menu
-        if initial_position.x != -1 {
+        let player_move = self.players[side_index].move_input();
+        if let Some((initial_position, result_position)) = player_move {
             if self.players[side_index].piece_at_coord(&result_position) {
                 // TODO: print piece taken inform
             }
@@ -52,7 +51,7 @@ impl GameManager {
             self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
             self.current_side.switch();
         }
-        else {
+        else if let None = player_move {
             // clear the console screen through ANSI codes
             print!("{}[2J", 27 as char);
             print!("{}[1;1H", 27 as char);
