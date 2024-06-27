@@ -3,8 +3,9 @@ use crate::game::pieces::piece::*;
 
 pub struct Pawn {
     pub icon: char,
-
     pub side: Side,
+
+    first_move: bool,
 }
 
 impl Pawn {
@@ -13,15 +14,16 @@ impl Pawn {
             Side::WHITE => 'P',
             Side::BLACK => 'p',
         };
+        let first_move = true;
 
-        Pawn { icon, side }
+        Pawn { icon, side, first_move }
     }
 }
 
 impl Piece for Pawn {
-    fn validate_move(old_pos: &Position, new_pos: &Position) -> bool {
-        // TODO: generate all possible moves for this piece. Compare with move.
-        // TODO: Turn move to Position, use position comparison
-        return true;
+    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position> {
+        let moves = Vec::new();
+
+        return moves;
     }
 }

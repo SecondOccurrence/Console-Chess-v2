@@ -194,6 +194,7 @@ impl MenuFunctions for GameManager {
         let file_contents = fs::read_to_string(save_file_path)
             .expect("Failed to read the save file.");
 
+        // TODO: check if a pawn has its first move or not
         self.read_save(&file_contents);
 
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
@@ -242,6 +243,7 @@ impl MenuFunctions for GameManager {
                     if let Some(piece) = PieceType::convert(ch) {
                         let side = piece.side();
                         let pos = Position { x: cell, y: row };
+                        // TODO: change first move if not at specific y-coord
                         if side == Side::WHITE {
                             self.players[0].add_piece(pos, piece);
                         }

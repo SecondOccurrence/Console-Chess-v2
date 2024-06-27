@@ -47,7 +47,7 @@ impl Player {
         return map;
     }
 
-    pub fn move_input(&self) -> Option<(Position, Position)> {
+    pub fn move_input(&mut self) -> Option<(Position, Position)> {
         let (initial_pos, result_pos): (Position, Position);
         loop {
             let mut new_move = String::new();
@@ -77,6 +77,10 @@ impl Player {
         return self.pieces.get(&pos);
     }
 
+    pub fn get_piece_mut(&mut self, pos: &Position) -> Option<&mut PieceType> {
+        return self.pieces.get_mut(&pos);
+    }
+
     pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
         assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
 
@@ -101,7 +105,7 @@ impl Player {
         self.pieces.clear();
     }
 
-    fn validate_input(&self, input: &str) -> Result<(Position, Position), String> {
+    fn validate_input(&mut self, input: &str) -> Result<(Position, Position), String> {
         if input.len() != 4 { 
             return Err("Move must follow the example format: a1a2".to_string());
         }
@@ -124,18 +128,18 @@ impl Player {
         let old_pos = Position { x: old_pos_x, y: old_pos_y };
         let new_pos = Position { x: new_pos_x, y: new_pos_y };
 
-        let piece_search = self.get_piece(&old_pos);
+        let piece_search = self.get_piece_mut(&old_pos);
         if let Some(piece) = piece_search {
             if !piece.validate_move(&old_pos, &new_pos) {
-                return Err("Move cannot be performed on your selected piece".to_string()); 
+                return Err("Your move on that piece is illegal".to_string()); 
             }
         }
         else if let None = self.get_piece(&old_pos) {
-            return Err("Move must be performed on your  piece".to_string());
+            return Err("Move must be performed on your piece".to_string());
         }
 
         if let Some(_) = self.get_piece(&new_pos) {
-            return Err("Move must not land on another piece of yours.".to_string());
+            return Err("Move must not land on another piece of yours".to_string());
         }
 
         return Ok((old_pos, new_pos));

@@ -64,15 +64,15 @@ impl PieceType {
         return s;
     }
 
-    pub fn validate_move(&self, old_pos: &Position, new_pos: &Position) -> bool {
+    pub fn validate_move(&mut self, old_pos: &Position, new_pos: &Position) -> bool {
         let valid: bool;
         match self {
-            PieceType::King(_) => valid = King::validate_move(old_pos, new_pos),
-            PieceType::Queen(_) => valid = Queen::validate_move(old_pos, new_pos),
-            PieceType::Rook(_) => valid = Rook::validate_move(old_pos, new_pos),
-            PieceType::Bishop(_) => valid = Bishop::validate_move(old_pos, new_pos),
-            PieceType::Knight(_) => valid = Knight::validate_move(old_pos, new_pos),
-            PieceType::Pawn(_) => valid = Pawn::validate_move(old_pos, new_pos),
+            PieceType::King(king) => valid = king.validate_move(old_pos, new_pos),
+            PieceType::Queen(queen) => valid = queen.validate_move(old_pos, new_pos),
+            PieceType::Rook(rook) => valid = rook.validate_move(old_pos, new_pos),
+            PieceType::Bishop(bishop) => valid = bishop.validate_move(old_pos, new_pos),
+            PieceType::Knight(knight) => valid = knight.validate_move(old_pos, new_pos),
+            PieceType::Pawn(pawn) => valid = pawn.validate_move(old_pos, new_pos),
         }
 
         return valid;

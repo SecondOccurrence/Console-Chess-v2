@@ -19,9 +19,9 @@ impl King {
 }
 
 impl Piece for King {
-    fn validate_move(old_pos: &Position, new_pos: &Position) -> bool {
-        // TODO: generate all possible moves for this piece. Compare with move.
-        // TODO: Turn move to Position, use position comparison
-        return true;
+    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position> {
+        let moves = Vec::new();
+
+        return moves;
     }
 }
