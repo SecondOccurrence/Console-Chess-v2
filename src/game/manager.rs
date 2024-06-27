@@ -41,8 +41,8 @@ impl GameManager {
         }
 
         let (initial_position, result_position) = self.players[side_index].move_input();
-        // returns -2 if user wishes to enter the menu
-        if initial_position.x != -2 {
+        // returns -1 if user wishes to enter the menu
+        if initial_position.x != -1 {
             if self.players[side_index].piece_at_coord(&result_position) {
                 // TODO: print piece taken inform
             }

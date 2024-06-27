@@ -48,27 +48,29 @@ impl Player {
     }
 
     pub fn move_input(&self) -> (Position, Position) {
+        let (mut initial_pos, mut result_pos) = (Position { x: -1, y: -1 }, Position { x: -1, y: -1 });
         loop {
             let mut new_move = String::new();
             io::stdin().read_line(&mut new_move)
                 .expect("Failed to read move");
             new_move = new_move.trim().to_string();
 
-            let (mut initial_pos, mut result_pos) = (Position { x: -2, y: -2 }, Position { x: -2, y: -2 });
-            if new_move != "menu" {
-                let (temp_initial_pos, temp_result_pos) = self.validate_input(&new_move);
-                initial_pos = temp_initial_pos;
-                result_pos = temp_result_pos;
+            if new_move == "menu" {
+                break;
             }
 
-            // x = -1 only exists when theres invalid input
-            if initial_pos.x == -1 {
-                println!("Invalid move. Try again.");
-                continue;
+            let validation = self.validate_input(&new_move);
+            if let Err(error) = validation {
+                println!("{}", error);
             }
-
-            return (initial_pos, result_pos);
+            else if let Ok((initial, result)) = validation {
+                initial_pos = initial;
+                result_pos = result;
+                break;
+            }
         }
+
+        return (initial_pos, result_pos);
     }
 
     // TODO: refactor to contains key
@@ -104,43 +106,38 @@ impl Player {
         self.pieces.clear();
     }
 
-    fn validate_input(&self, input: &str) -> (Position, Position) {
-        let mut old_pos = Position { x: -1, y: -1 };
-        let mut new_pos = Position { x: -1, y: -1 };
-
+    fn validate_input(&self, input: &str) -> Result<(Position, Position), String> {
         if input.len() != 4 { 
-            return (old_pos, new_pos);
+            return Err("Move must follow the example format: a1a2".to_string());
         }
 
         let (initial_coord, result_coord) = input.split_at(2);
 
-        if self.validate_coordinate(&initial_coord) && self.validate_coordinate(&result_coord) {
-            let old_pos_x_letter = initial_coord.chars().nth(0).unwrap();
-            let new_pos_x_letter = result_coord.chars().nth(0).unwrap();
-
-            let old_pos_x = (old_pos_x_letter as u8 - b'a') as i8;
-            let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
-
-
-            let old_pos_y = initial_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
-            let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
-
-            let temp_old_pos = Position { x: old_pos_x, y: old_pos_y };
-            let temp_new_pos = Position { x: new_pos_x, y: new_pos_y };
-
-            if self.piece_at_coord(&temp_old_pos) && !self.piece_at_coord(&temp_new_pos) {
-                old_pos = temp_old_pos;
-                new_pos = temp_new_pos;
-            }
-            else {
-                println!("Move must be performed on your piece \nMove must not land on another piece of yours.");
-            }
-        }
-        else {
-            println!("Be sure the move lies within the board coordinates");
+        if !self.validate_coordinate(&initial_coord) || !self.validate_coordinate(&result_coord) {
+            return Err("Be sure the move lies within the board coordinates".to_string());
         }
 
-        return (old_pos, new_pos);
+        let old_pos_x_letter = initial_coord.chars().nth(0).unwrap();
+        let new_pos_x_letter = result_coord.chars().nth(0).unwrap();
+
+        let old_pos_x = (old_pos_x_letter as u8 - b'a') as i8;
+        let new_pos_x = (new_pos_x_letter as u8 - b'a') as i8;
+
+        let old_pos_y = initial_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+        let new_pos_y = result_coord.chars().nth(1).unwrap().to_digit(10).unwrap() as i8 - 1;
+
+        let old_pos = Position { x: old_pos_x, y: old_pos_y };
+        let new_pos = Position { x: new_pos_x, y: new_pos_y };
+
+        if !self.piece_at_coord(&old_pos) {
+            return Err("Move must be performed on your  piece".to_string());
+        }
+
+        if self.piece_at_coord(&new_pos) {
+            return Err("Move must not land on another piece of yours.".to_string());
+        }
+
+        return Ok((old_pos, new_pos));
     }
 
     fn validate_coordinate(&self, coord: &str) -> bool {
