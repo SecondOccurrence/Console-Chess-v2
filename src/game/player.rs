@@ -168,20 +168,31 @@ impl Player {
     pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
         assert!(self.current_piece.0.x != -1, "Pruning possible moves when no current piece is known to the player.");
 
-        for (itr_pos, itr_piece) in pieces_to_compare.iter() {
-            if let Some(found_pos) = self.possible_moves.get(itr_pos) {
-                let x_diff = (self.current_piece.0.x - found_pos.x) as u8;
-                let y_diff = (self.current_piece.0.y - found_pos.y) as u8;
+        for (itr_pos, _) in pieces_to_compare.iter() {
+            let piece_in_path = match self.possible_moves.get(itr_pos) {
+                Some(found_pos) => found_pos,
+                None => continue,
+            };
 
-                let moves_to_prune = self.current_piece.1.invalid_moves(&self.possible_moves, &self.current_piece.0, x_diff, y_diff);
+            let found_pos = *piece_in_path;
 
-                // TODO: find direction from initial, x, y
-                // lies on move path, prune beyond it
+            let x_diff = (self.current_piece.0.x - found_pos.x) as u8;
+            let y_diff = (self.current_piece.0.y - found_pos.y) as u8;
+
+            let mut moves_to_prune = self.current_piece.1.invalid_moves(&self.possible_moves, &self.current_piece.0, x_diff, y_diff);
+            if !capturing {
+                moves_to_prune.insert(found_pos);
+            }
+
+            self.prune_moves(&moves_to_prune);
+        }
+    }
+
+    fn prune_moves(&mut self, moves_to_prune: &HashSet<Position>) { 
+        for pruned_move in moves_to_prune {
+            if self.possible_moves.contains(&pruned_move) {
+                self.possible_moves.remove(&pruned_move);
             }
         }
-        // TODO: ^ use piece specific pruning
-        //
-        // TODO: ^ for bishop: generate positions from that point in that direction onwards
-
     }
 }
