@@ -10,6 +10,9 @@ use crate::game::pieces::pawn::Pawn;
 use crate::game::pieces::Position;
 use crate::game::side::Side;
 
+use std::collections::HashSet;
+
+#[derive(Clone)]
 pub enum PieceType {
     King(King),
     Queen(Queen),
@@ -76,5 +79,16 @@ impl PieceType {
         }
 
         return valid;
+    }
+
+    pub fn possible_moves(&mut self, pos: &Position) -> HashSet<Position> {
+        return match self {
+            PieceType::King(king) => king.possible_moves(pos),
+            PieceType::Queen(queen) => queen.possible_moves(pos),
+            PieceType::Rook(rook) => rook.possible_moves(pos),
+            PieceType::Bishop(bishop) => bishop.possible_moves(pos),
+            PieceType::Knight(knight) => knight.possible_moves(pos),
+            PieceType::Pawn(pawn) => pawn.possible_moves(pos),
+        };
     }
 }

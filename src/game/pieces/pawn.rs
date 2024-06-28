@@ -1,6 +1,9 @@
 use crate::game::side::Side;
 use crate::game::pieces::piece::*;
 
+use std::collections::HashSet;
+
+#[derive(Clone)]
 pub struct Pawn {
     pub icon: char,
     pub side: Side,
@@ -21,26 +24,10 @@ impl Pawn {
 }
 
 impl Piece for Pawn {
-    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position> {
-        let mut moves = Vec::new();
-        let increment;
-        if self.side == Side::WHITE {
-            increment = 1;
-        }
-        else {
-            increment = -1;
-        }
-
-        if self.first_move {
-            let (new_x, new_y) = (initial_pos.x, initial_pos.y + (2 * increment));
-            let new_move = Position{ x: new_x, y: new_y };
-            moves.push(new_move);
-            self.first_move = false;
-        }
-
-        let (new_x, new_y) = (initial_pos.x, initial_pos.y + increment);
-        let new_move = Position{ x: new_x, y: new_y };
-        moves.push(new_move);
+    // TODO: return tuple (standard, capture), other pieces has this duplicate, see if can check
+    // TODO: ^ see if can check equality for less checks
+    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
+        let moves = HashSet::new();
 
         return moves;
     }

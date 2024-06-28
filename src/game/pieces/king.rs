@@ -1,6 +1,9 @@
 use crate::game::side::Side;
 use crate::game::pieces::piece::*;
 
+use std::collections::HashSet;
+
+#[derive(Clone)]
 pub struct King {
     pub icon: char,
 
@@ -19,8 +22,8 @@ impl King {
 }
 
 impl Piece for King {
-    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position> {
-        let moves = Vec::new();
+    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
+        let moves = HashSet::new();
 
         return moves;
     }

@@ -1,6 +1,9 @@
 use crate::game::side::Side;
 use crate::game::pieces::piece::*;
 
+use std::collections::HashSet;
+
+#[derive(Clone)]
 pub struct Queen {
     pub icon: char,
 
@@ -19,8 +22,8 @@ impl Queen {
 }
 
 impl Piece for Queen {
-    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position> {
-        let moves = Vec::new();
+    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
+        let moves = HashSet::new();
 
         return moves;
     }

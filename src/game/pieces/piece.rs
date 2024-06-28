@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub struct Position {
     pub x: i8,
@@ -5,6 +7,9 @@ pub struct Position {
 }
 
 pub trait Piece {
+    // TODO: check standard and capture moves
+    // TODO: ^ if the same, ignore
+    // TODO: ^ if different, dont compare capture moves?
     fn validate_move(&mut self, old_pos: &Position, new_pos: &Position) -> bool {
         let mut valid = false;
         let moves = self.possible_moves(old_pos);
@@ -20,5 +25,5 @@ pub trait Piece {
         return valid;
     }
 
-    fn possible_moves(&mut self, initial_pos: &Position) -> Vec<Position>;
+    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position>;
 }

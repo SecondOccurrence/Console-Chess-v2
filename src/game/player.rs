@@ -2,20 +2,24 @@ use crate::game::side::Side;
 use crate::game::pieces::*;
 
 use std::collections::HashMap;
+use std::collections::HashSet;
 use std::io;
 
 pub struct Player {
     pieces: HashMap<Position, PieceType>,
+    current_piece_pos: Position,
+    possible_moves: HashSet<Position>,
 }
 
 impl Player {
     pub fn new(side: Side) -> Player {
         let pieces = Player::init_pieces(&side);
-        Player { pieces }
+        let current_piece_pos = Position { x: -1, y: -1 };
+        let possible_moves = HashSet::new();
+        Player { pieces, current_piece_pos, possible_moves }
     }
 
     fn init_pieces(side: &Side) -> HashMap<Position, PieceType> {
-
         let mut pos_y: i8;
         let increment: i8;
 
@@ -73,38 +77,6 @@ impl Player {
         return Some((initial_pos, result_pos));
     }
 
-    pub fn get_piece(&self, pos: &Position) -> Option<&PieceType> {
-        return self.pieces.get(&pos);
-    }
-
-    pub fn get_piece_mut(&mut self, pos: &Position) -> Option<&mut PieceType> {
-        return self.pieces.get_mut(&pos);
-    }
-
-    pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
-        assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
-
-        let piece = self.pieces.remove(initial_pos).unwrap();
-
-        self.pieces.insert(*result_pos, piece);
-        println!("piece moved");
-    }
-
-    pub fn pieces(&self) -> &HashMap<Position, PieceType> {
-        return &self.pieces;
-    }
-
-    pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
-        assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
-        assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
-
-        self.pieces.insert(pos, piece);
-    }
-
-    pub fn clear_pieces(&mut self) {
-        self.pieces.clear();
-    }
-
     fn validate_input(&mut self, input: &str) -> Result<(Position, Position), String> {
         if input.len() != 4 { 
             return Err("Move must follow the example format: a1a2".to_string());
@@ -128,13 +100,7 @@ impl Player {
         let old_pos = Position { x: old_pos_x, y: old_pos_y };
         let new_pos = Position { x: new_pos_x, y: new_pos_y };
 
-        let piece_search = self.get_piece_mut(&old_pos);
-        if let Some(piece) = piece_search {
-            if !piece.validate_move(&old_pos, &new_pos) {
-                return Err("Your move on that piece is illegal".to_string()); 
-            }
-        }
-        else if let None = self.get_piece(&old_pos) {
+        if let None = self.get_piece(&old_pos) {
             return Err("Move must be performed on your piece".to_string());
         }
 
@@ -157,5 +123,59 @@ impl Player {
         else {
             return false;
         }
+    }
+
+    pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
+        assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
+
+        let piece = self.pieces.remove(initial_pos).unwrap();
+
+        self.pieces.insert(*result_pos, piece);
+        println!("piece moved");
+    }
+
+    pub fn pieces(&self) -> &HashMap<Position, PieceType> {
+        return &self.pieces;
+    }
+
+    pub fn get_piece(&self, pos: &Position) -> Option<&PieceType> {
+        return self.pieces.get(&pos);
+    }
+
+    pub fn get_piece_mut(&mut self, pos: &Position) -> Option<&mut PieceType> {
+        return self.pieces.get_mut(&pos);
+    }
+
+    pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
+        assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
+        assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
+
+        self.pieces.insert(pos, piece);
+    }
+
+    pub fn clear_pieces(&mut self) {
+        self.pieces.clear();
+    }
+
+    pub fn generate_possible_moves(&mut self, piece_at_pos: &Position) {
+        assert!(self.pieces.contains_key(&piece_at_pos), "Generating moves for a piece that does not exist at ({},{})", piece_at_pos.x, piece_at_pos.y);
+
+        self.current_piece_pos = *piece_at_pos;
+        self.possible_moves = self.pieces.get_mut(&piece_at_pos).unwrap().possible_moves(&piece_at_pos);
+    }
+
+    pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
+        assert!(self.current_piece_pos.x != -1, "Pruning possible moves when no current piece is known to the player.");
+
+        for (itr_pos, itr_piece) in pieces_to_compare.iter() {
+            
+        }
+        // TODO: get compare piece position
+        // TODO: check if ^ lies on move path
+        // TODO: if ^ true, prune beyond the path
+        // TODO: ^ use piece specific pruning
+        //
+        // TODO: ^ for bishop: generate positions from that point in that direction onwards
+
     }
 }

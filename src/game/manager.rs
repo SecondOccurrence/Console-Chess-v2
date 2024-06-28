@@ -42,6 +42,16 @@ impl GameManager {
 
         let player_move = self.players[side_index].move_input();
         if let Some((initial_position, result_position)) = player_move {
+            self.players[side_index].generate_possible_moves(&initial_position);
+            
+            // TODO: understand borrowing temp fix clone
+            let player_pieces = self.players[side_index].pieces().clone();
+            let opponent_pieces = self.players[!side_index].pieces().clone();
+            self.players[side_index].prune_possible_moves(player_pieces, false);
+            self.players[side_index].prune_possible_moves(opponent_pieces, true);
+
+            // TODO: check for moves on enemy piece not registered as possible capture
+
             // TODO: side_index might not be correct. might be opposite
             if let Some(_piece) = self.players[side_index].get_piece(&result_position) {
                 // TODO: print piece taken inform
