@@ -175,7 +175,7 @@ impl Player {
             let x_diff = (self.current_piece.0.x - found_pos.x) as i8;
             let y_diff = (self.current_piece.0.y - found_pos.y) as i8;
 
-            let mut moves_to_prune = self.current_piece.1.invalid_moves(&self.possible_moves, &self.current_piece.0, x_diff, y_diff);
+            let mut moves_to_prune = self.current_piece.1.invalid_moves(&self.current_piece.0, x_diff, y_diff);
             if !capturing {
                 moves_to_prune.insert(found_pos);
             }

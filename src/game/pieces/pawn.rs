@@ -40,8 +40,14 @@ impl Piece for Pawn {
 
     }
 
-    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
+    fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         let invalids = HashSet::new();
+
+        return invalids;
+    }
+
+    fn prune_moves(initial_pos: &Position, row_max: i8, col_max: i8) -> HashSet<Position> {
+        let mut invalids: HashSet<Position> = HashSet::new();
 
         return invalids;
     }

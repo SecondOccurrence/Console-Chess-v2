@@ -29,6 +29,7 @@ pub trait Piece {
 
     fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position>;
 
-    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position>;
+    fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position>;
     fn find_prune_direction(&self, pos: &Position, x_diff: i8, y_diff: i8) -> MoveDirection;
+    fn prune_moves(initial_pos: &Position, row_max: i8, col_max: i8) -> HashSet<Position>;
 }

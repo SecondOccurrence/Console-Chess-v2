@@ -93,14 +93,14 @@ impl PieceType {
         };
     }
 
-    pub fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
+    pub fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         return match self {
-            PieceType::King(king) => king.invalid_moves(possible_moves, pos, x_diff, y_diff),
-            PieceType::Queen(queen) => queen.invalid_moves(possible_moves, pos, x_diff, y_diff),
-            PieceType::Rook(rook) => rook.invalid_moves(possible_moves, pos, x_diff, y_diff),
-            PieceType::Bishop(bishop) => bishop.invalid_moves(possible_moves, pos, x_diff, y_diff),
-            PieceType::Knight(knight) => knight.invalid_moves(possible_moves, pos, x_diff, y_diff),
-            PieceType::Pawn(pawn) => pawn.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::King(king) => king.invalid_moves(pos, x_diff, y_diff),
+            PieceType::Queen(queen) => queen.invalid_moves(pos, x_diff, y_diff),
+            PieceType::Rook(rook) => rook.invalid_moves(pos, x_diff, y_diff),
+            PieceType::Bishop(bishop) => bishop.invalid_moves(pos, x_diff, y_diff),
+            PieceType::Knight(knight) => knight.invalid_moves(pos, x_diff, y_diff),
+            PieceType::Pawn(pawn) => pawn.invalid_moves(pos, x_diff, y_diff),
         };
     }
 }
