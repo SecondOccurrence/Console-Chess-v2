@@ -1,5 +1,6 @@
 use crate::game::side::Side;
 use crate::game::pieces::*;
+use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -7,16 +8,16 @@ use std::io;
 
 pub struct Player {
     pieces: HashMap<Position, PieceType>,
-    current_piece_pos: Position,
+    current_piece: (Position, PieceType),
     possible_moves: HashSet<Position>,
 }
 
 impl Player {
     pub fn new(side: Side) -> Player {
         let pieces = Player::init_pieces(&side);
-        let current_piece_pos = Position { x: -1, y: -1 };
+        let current_piece = ( Position { x: -1, y: -1 }, PieceType::Pawn(Pawn::new(side)) );
         let possible_moves = HashSet::new();
-        Player { pieces, current_piece_pos, possible_moves }
+        Player { pieces, current_piece, possible_moves }
     }
 
     fn init_pieces(side: &Side) -> HashMap<Position, PieceType> {
@@ -160,19 +161,24 @@ impl Player {
     pub fn generate_possible_moves(&mut self, piece_at_pos: &Position) {
         assert!(self.pieces.contains_key(&piece_at_pos), "Generating moves for a piece that does not exist at ({},{})", piece_at_pos.x, piece_at_pos.y);
 
-        self.current_piece_pos = *piece_at_pos;
+        self.current_piece = (*piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
         self.possible_moves = self.pieces.get_mut(&piece_at_pos).unwrap().possible_moves(&piece_at_pos);
     }
 
     pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
-        assert!(self.current_piece_pos.x != -1, "Pruning possible moves when no current piece is known to the player.");
+        assert!(self.current_piece.0.x != -1, "Pruning possible moves when no current piece is known to the player.");
 
         for (itr_pos, itr_piece) in pieces_to_compare.iter() {
-            
+            if let Some(found_pos) = self.possible_moves.get(itr_pos) {
+                let x_diff = (self.current_piece.0.x - found_pos.x) as u8;
+                let y_diff = (self.current_piece.0.y - found_pos.y) as u8;
+
+                let moves_to_prune = self.current_piece.1.invalid_moves(&self.possible_moves, &self.current_piece.0, x_diff, y_diff);
+
+                // TODO: find direction from initial, x, y
+                // lies on move path, prune beyond it
+            }
         }
-        // TODO: get compare piece position
-        // TODO: check if ^ lies on move path
-        // TODO: if ^ true, prune beyond the path
         // TODO: ^ use piece specific pruning
         //
         // TODO: ^ for bishop: generate positions from that point in that direction onwards

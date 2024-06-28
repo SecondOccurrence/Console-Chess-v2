@@ -1,3 +1,5 @@
+use crate::game::move_direction::MoveDirection;
+
 use std::collections::HashSet;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
@@ -26,4 +28,7 @@ pub trait Piece {
     }
 
     fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position>;
+
+    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: u8, y_diff: u8) -> HashSet<Position>;
+    fn find_prune_direction(&self, pos: &Position, x_diff: u8, y_diff: u8) -> MoveDirection;
 }

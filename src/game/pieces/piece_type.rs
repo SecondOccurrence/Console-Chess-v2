@@ -9,6 +9,7 @@ use crate::game::pieces::pawn::Pawn;
 
 use crate::game::pieces::Position;
 use crate::game::side::Side;
+use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashSet;
 
@@ -89,6 +90,17 @@ impl PieceType {
             PieceType::Bishop(bishop) => bishop.possible_moves(pos),
             PieceType::Knight(knight) => knight.possible_moves(pos),
             PieceType::Pawn(pawn) => pawn.possible_moves(pos),
+        };
+    }
+
+    pub fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: u8, y_diff: u8) -> HashSet<Position> {
+        return match self {
+            PieceType::King(king) => king.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::Queen(queen) => queen.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::Rook(rook) => rook.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::Bishop(bishop) => bishop.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::Knight(knight) => knight.invalid_moves(possible_moves, pos, x_diff, y_diff),
+            PieceType::Pawn(pawn) => pawn.invalid_moves(possible_moves, pos, x_diff, y_diff),
         };
     }
 }
