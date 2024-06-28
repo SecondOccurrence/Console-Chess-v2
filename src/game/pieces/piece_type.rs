@@ -93,7 +93,7 @@ impl PieceType {
         };
     }
 
-    pub fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: u8, y_diff: u8) -> HashSet<Position> {
+    pub fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         return match self {
             PieceType::King(king) => king.invalid_moves(possible_moves, pos, x_diff, y_diff),
             PieceType::Queen(queen) => queen.invalid_moves(possible_moves, pos, x_diff, y_diff),

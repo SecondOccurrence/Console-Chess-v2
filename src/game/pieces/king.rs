@@ -29,14 +29,14 @@ impl Piece for King {
         return moves;
     }
 
-    fn find_prune_direction(&self, pos: &Position, x_diff: u8, y_diff: u8) -> MoveDirection {
+    fn find_prune_direction(&self, pos: &Position, x_diff: i8, y_diff: i8) -> MoveDirection {
         let dir = MoveDirection::UP;
 
         return dir;
 
     }
 
-    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: u8, y_diff: u8) -> HashSet<Position> {
+    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         let invalids = HashSet::new();
 
         return invalids;

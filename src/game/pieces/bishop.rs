@@ -29,15 +29,21 @@ impl Piece for Bishop {
         return moves;
     }
 
-    fn find_prune_direction(&self, pos: &Position, x_diff: u8, y_diff: u8) -> MoveDirection {
-        let dir = MoveDirection::UP;
+    fn find_prune_direction(&self, pos: &Position, x_diff: i8, y_diff: i8) -> MoveDirection {
+        let dir: MoveDirection;
+        
+        if x_diff < 0 && y_diff < 0 { dir = MoveDirection::UP_RIGHT; }
+        else if x_diff < 0 && y_diff > 0 { dir = MoveDirection::DOWN_RIGHT; }
+        else if x_diff > 0 && y_diff < 0 { dir = MoveDirection::UP_LEFT; }
+        else { dir = MoveDirection::DOWN_LEFT; }
 
         return dir;
 
     }
 
-    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: u8, y_diff: u8) -> HashSet<Position> {
+    fn invalid_moves(&self, possible_moves: &HashSet<Position>, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         let invalids = HashSet::new();
+        let dir = self.find_prune_direction(pos, x_diff, y_diff);
 
         return invalids;
     }

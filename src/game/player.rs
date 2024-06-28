@@ -143,10 +143,6 @@ impl Player {
         return self.pieces.get(&pos);
     }
 
-    pub fn get_piece_mut(&mut self, pos: &Position) -> Option<&mut PieceType> {
-        return self.pieces.get_mut(&pos);
-    }
-
     pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
         assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
         assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
@@ -176,8 +172,8 @@ impl Player {
 
             let found_pos = *piece_in_path;
 
-            let x_diff = (self.current_piece.0.x - found_pos.x) as u8;
-            let y_diff = (self.current_piece.0.y - found_pos.y) as u8;
+            let x_diff = (self.current_piece.0.x - found_pos.x) as i8;
+            let y_diff = (self.current_piece.0.y - found_pos.y) as i8;
 
             let mut moves_to_prune = self.current_piece.1.invalid_moves(&self.possible_moves, &self.current_piece.0, x_diff, y_diff);
             if !capturing {
