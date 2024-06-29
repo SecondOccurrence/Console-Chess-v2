@@ -9,7 +9,6 @@ use crate::game::pieces::pawn::Pawn;
 
 use crate::game::pieces::Position;
 use crate::game::side::Side;
-use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashSet;
 
@@ -66,20 +65,6 @@ impl PieceType {
         };
 
         return s;
-    }
-
-    pub fn validate_move(&mut self, old_pos: &Position, new_pos: &Position) -> bool {
-        let valid: bool;
-        match self {
-            PieceType::King(king) => valid = king.validate_move(old_pos, new_pos),
-            PieceType::Queen(queen) => valid = queen.validate_move(old_pos, new_pos),
-            PieceType::Rook(rook) => valid = rook.validate_move(old_pos, new_pos),
-            PieceType::Bishop(bishop) => valid = bishop.validate_move(old_pos, new_pos),
-            PieceType::Knight(knight) => valid = knight.validate_move(old_pos, new_pos),
-            PieceType::Pawn(pawn) => valid = pawn.validate_move(old_pos, new_pos),
-        }
-
-        return valid;
     }
 
     pub fn possible_moves(&mut self, pos: &Position) -> HashSet<Position> {

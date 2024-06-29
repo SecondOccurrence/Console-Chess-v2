@@ -1,6 +1,5 @@
 use crate::game::side::Side;
 use crate::game::pieces::*;
-use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -78,6 +77,7 @@ impl Player {
         return Some((initial_pos, result_pos));
     }
 
+    // TODO test
     fn validate_input(&mut self, input: &str) -> Result<(Position, Position), String> {
         if input.len() != 4 { 
             return Err("Move must follow the example format: a1a2".to_string());
@@ -112,6 +112,7 @@ impl Player {
         return Ok((old_pos, new_pos));
     }
 
+    // TODO: test
     fn validate_coordinate(&self, coord: &str) -> bool {
         assert!(coord.len() == 2, "Coordinate string must have exactly two characters.");
 
@@ -126,6 +127,7 @@ impl Player {
         }
     }
 
+    // TODO: test
     pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
         assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
 
@@ -139,10 +141,12 @@ impl Player {
         return &self.pieces;
     }
 
+    // TODO: test
     pub fn get_piece(&self, pos: &Position) -> Option<&PieceType> {
         return self.pieces.get(&pos);
     }
 
+    // TODO: test
     pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
         assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
         assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
@@ -154,6 +158,7 @@ impl Player {
         self.pieces.clear();
     }
 
+    // TODO: test
     pub fn generate_possible_moves(&mut self, piece_at_pos: &Position) {
         assert!(self.pieces.contains_key(&piece_at_pos), "Generating moves for a piece that does not exist at ({},{})", piece_at_pos.x, piece_at_pos.y);
 
@@ -161,8 +166,9 @@ impl Player {
         self.possible_moves = self.pieces.get_mut(&piece_at_pos).unwrap().possible_moves(&piece_at_pos);
     }
 
+    // TODO: test
     pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
-        assert!(self.current_piece.0.x != -1, "Pruning possible moves when no current piece is known to the player.");
+        assert!(self.current_piece.0.x == -1, "Pruning possible moves when no current piece is known to the player.");
 
         for (itr_pos, _) in pieces_to_compare.iter() {
             let piece_in_path = match self.possible_moves.get(itr_pos) {
@@ -184,6 +190,7 @@ impl Player {
         }
     }
 
+    // TODO: test
     fn prune_moves(&mut self, moves_to_prune: &HashSet<Position>) { 
         for pruned_move in moves_to_prune {
             if self.possible_moves.contains(&pruned_move) {
@@ -192,3 +199,10 @@ impl Player {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+}
+
