@@ -46,9 +46,9 @@ impl GameManager {
             
             // TODO: understand borrowing temp fix clone
             let player_pieces = self.players[side_index].pieces().clone();
-            let opponent_pieces = self.players[!side_index].pieces().clone();
+            //let opponent_pieces = self.players[!side_index].pieces().clone();
             self.players[side_index].prune_possible_moves(player_pieces, false);
-            self.players[side_index].prune_possible_moves(opponent_pieces, true);
+            //self.players[side_index].prune_possible_moves(opponent_pieces, true);
 
             // TODO: check for moves on enemy piece not registered as possible capture
 
@@ -118,7 +118,6 @@ impl GameManager {
 
 impl MenuFunctions for GameManager {
     // TODO: add startup menu 
-    
     fn show_menu() {
         println!("\n-- menu --");
         println!("enter \"exit\" to return to the game");
@@ -199,11 +198,9 @@ impl MenuFunctions for GameManager {
     // TODO: import game history?
     fn import_game(&mut self) {
         let save_states_path = GameManager::get_save_path();
-        let save_file_path = GameManager::retrieve_save_file(&save_states_path);
+        assert!(save_states_path.exists(), "Attempting to retrieve a save file: the path does not exist");
 
-        let file_contents = fs::read_to_string(save_file_path)
-            .expect("Failed to read the save file.");
-
+        let file_contents = GameManager::get_import_name(&save_states_path);
         // TODO: check if a pawn has its first move or not
         let validation = self.validate_save(&file_contents);
         if let Ok(()) = validation {
@@ -216,10 +213,8 @@ impl MenuFunctions for GameManager {
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
     }
 
-    fn retrieve_save_file(path: &PathBuf) -> PathBuf {
-        assert!(path.exists(), "Attempting to retrieve a save file: the path does not exist");
-
-        let mut file_path: PathBuf;
+    fn get_import_name(path: &PathBuf) -> String {
+        let mut contents = String::new();
         loop {
             println!("Enter the save file name:");
             println!("(save files are located in: {})", path.display());
@@ -229,16 +224,30 @@ impl MenuFunctions for GameManager {
             file_name = file_name.trim().to_string();
             file_name.push_str(".fen");
 
-            file_path = path.join(file_name); 
-            if let Err(_) = fs::File::open(&file_path) {
-                println!("Save file does not exist.\n");
+            let file_path = path.join(file_name); 
+
+            let read_result = GameManager::retrieve_save_file(&file_path);
+            if let Ok(result) = read_result {
+                contents = result;
+            }
+            else if let Err(error) = read_result {
+                println!("{}", error);
                 continue;
             }
-            
+
             break;
         }
+        return contents;
+    }
 
-        return file_path;
+    fn retrieve_save_file(path: &PathBuf) -> Result<String, String> {
+        if let Err(_) = fs::File::open(&path) {
+            return Err(format!("Save file '{}' does not exist.", path.display()));
+        }
+        
+        let file_contents = fs::read_to_string(path)
+            .expect("Failed to read the save file.");
+        return Ok(file_contents);
     }
 
     fn validate_save(&self, fen_string: &str) -> Result<(), String> {
@@ -269,6 +278,7 @@ impl MenuFunctions for GameManager {
         return Ok(());
     }
 
+    // TODO: test this. call function and check board getpiece at various positions OR check all
     fn read_save(&mut self, fen_string: &str) {
         self.chess_board.clear();
         self.players[0].clear_pieces();
@@ -284,19 +294,18 @@ impl MenuFunctions for GameManager {
                     cell += ch.to_digit(10).unwrap() as i8; 
                 }
                 else {
-                    if let Some(piece) = PieceType::convert(ch) {
-                        let side = piece.side();
-                        let pos = Position { x: cell, y: row };
-                        // TODO: change first move if not at specific y-coord
-                        if side == Side::WHITE {
-                            self.players[0].add_piece(pos, piece);
-                        }
-                        else {
-                            self.players[1].add_piece(pos, piece);
-                        }
+                    let convert_result = PieceType::convert(ch);
+                    assert!(convert_result.is_some(), "Piece conversion: expected some, but got none");
+                    let piece = convert_result.unwrap();
+
+                    let side = piece.side();
+                    let pos = Position { x: cell, y: row };
+                    // TODO: change first move if not at specific y-coord
+                    if side == Side::WHITE {
+                        self.players[0].add_piece(pos, piece);
                     }
                     else {
-                        
+                        self.players[1].add_piece(pos, piece);
                     }
                     cell += 1;
                 }
@@ -345,6 +354,7 @@ impl MenuFunctions for GameManager {
         return fen_string;
     }
 
+    // TODO: refactor to be able to test using path input. includes only writing logic
     fn create_save(board_state: &str) {
         let mut save_states_path = GameManager::get_save_path();
 
@@ -466,5 +476,24 @@ mod tests {
         assert_eq!(gm.validate_save(&fen_string_4), Ok(()));
     }
 
+    #[test]
+    fn save_file_wrong_path() {
+        let mut path = GameManager::get_save_path();
+        path = path.join("doesnt_exist.fen");
+        let result = GameManager::retrieve_save_file(&path);
+        assert!(result.is_err(), "Expected Error but got {:?}", result);
+    }
 
+    #[test]
+    fn save_file_path_exists() {
+        let mut path = GameManager::get_save_path();
+        path = path.join("file_test.fen");
+
+        File::create(&path).unwrap();
+
+        let result = GameManager::retrieve_save_file(&path);
+        assert!(result.is_ok(), "Expected Ok but got {:?}", result);
+
+        fs::remove_file(path).unwrap();
+    }
 }
