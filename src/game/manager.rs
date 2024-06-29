@@ -205,7 +205,13 @@ impl MenuFunctions for GameManager {
             .expect("Failed to read the save file.");
 
         // TODO: check if a pawn has its first move or not
-        self.read_save(&file_contents);
+        let validation = self.validate_save(&file_contents);
+        if let Ok(()) = validation {
+            self.read_save(&file_contents);
+        }
+        else if let Err(error) = validation {
+            println!("Could not read the save file: {}", error);
+        }
 
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
     }
@@ -219,7 +225,7 @@ impl MenuFunctions for GameManager {
             println!("(save files are located in: {})", path.display());
             let mut file_name = String::new();
             io::stdin().read_line(&mut file_name)
-                .expect("Failed to read move");
+                .expect("Failed to read save file");
             file_name = file_name.trim().to_string();
             file_name.push_str(".fen");
 
@@ -233,6 +239,34 @@ impl MenuFunctions for GameManager {
         }
 
         return file_path;
+    }
+
+    fn validate_save(&self, fen_string: &str) -> Result<(), String> {
+        let split_input: Vec<&str> = fen_string.split('/').collect();
+        if split_input.len() != 8 {
+            return Err(format!("FEN string: expected 8 rows, found {}", split_input.len()));
+        }
+
+        for row in split_input.iter() {
+            let mut cell_num = 0;
+            for cell in row.chars() {
+                if cell.is_digit(10) {
+                    cell_num += cell.to_digit(10).unwrap();
+                }
+                else {
+                    if let None = PieceType::convert(cell) {
+                        return Err(format!("FEN string cell: expected piece, found '{}'", cell));
+                    }
+                    cell_num += 1;
+                }
+            }
+
+            if cell_num != 8 {
+                return Err(format!("FEN string row: expected 8 cells, found {}", cell_num));
+            }
+        }
+        
+        return Ok(());
     }
 
     fn read_save(&mut self, fen_string: &str) {
@@ -260,6 +294,9 @@ impl MenuFunctions for GameManager {
                         else {
                             self.players[1].add_piece(pos, piece);
                         }
+                    }
+                    else {
+                        
                     }
                     cell += 1;
                 }
@@ -360,4 +397,74 @@ impl MenuFunctions for GameManager {
             self.export_game();
         }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn board_length_upper_lim() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/8";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_length_lower_lim() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_1() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/7/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_2() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnrr/pppppppp/8/8/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_3() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnrr/pppppppp/8/8/8/8/PPPPPPPP/";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_cell_invalid_piece() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbVkbnr/pppppppp/8/8/8/8/PPPPPPPP/";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    fn valid_board() {
+        let gm = GameManager::new();
+
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let fen_string_2 = "r2qkbnr/p1p1pppp/b1np4/1p6/2B2P2/4P3/PPPP1KPP/RNBQ2NR";
+        let fen_string_3 = "rNb1kN1r/ppp1pppp/3p1n2/8/Pq6/2PPP3/1P3PPP/RNB1KB1R";
+        let fen_string_4 = "rNb1kN1r/ppp1ppRp/3p4/8/P6P/3qP3/5PP1/R3Kn2";
+
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_2), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_3), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_4), Ok(()));
+    }
+
+
 }

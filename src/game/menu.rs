@@ -16,6 +16,7 @@ pub trait MenuFunctions {
 
     fn import_game(&mut self);
     fn retrieve_save_file(path: &PathBuf) -> PathBuf;
+    fn validate_save(&self, fen_string: &str) -> Result<(), String>;
     fn read_save(&mut self, fen_string: &str);
 
     fn export_game(&self);
