@@ -52,3 +52,30 @@ impl ChessBoard {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn valid_piece_retrieval() {
+        let board = ChessBoard::new();
+        _ = board.get_piece(0, 0);
+        _ = board.get_piece(3, 4);
+        _ = board.get_piece(7, 7);
+    }
+
+    #[test]
+    #[should_panic]
+    fn invalid_piece_retrieval_x() {
+        let board = ChessBoard::new();
+        _ = board.get_piece(8, 4);
+    }
+
+    #[test]
+    #[should_panic]
+    fn invalid_piece_retrieval_y() {
+        let board = ChessBoard::new();
+        _ = board.get_piece(4, 8);
+    }
+}
