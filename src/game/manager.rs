@@ -27,6 +27,8 @@ impl GameManager {
     }
 
     pub fn run(&mut self) -> bool {
+        let mut leave_game = false;
+
         self.display_board();
 
         let side_index = self.current_side.to_index();
@@ -38,10 +40,20 @@ impl GameManager {
             println!("\nBlack Move:");
         }
 
-        let (initial_position, result_position) = self.players[side_index].move_input();
-        // returns -2 if user wishes to enter the menu
-        if initial_position.x != -2 {
-            if self.players[side_index].piece_at_coord(&result_position) {
+        let player_move = self.players[side_index].move_input();
+        if let Some((initial_position, result_position)) = player_move {
+            self.players[side_index].generate_possible_moves(&initial_position);
+            
+            // TODO: understand borrowing temp fix clone
+            let player_pieces = self.players[side_index].pieces().clone();
+            let opponent_pieces = self.players[!side_index].pieces().clone();
+            self.players[side_index].prune_possible_moves(player_pieces, false);
+            self.players[side_index].prune_possible_moves(opponent_pieces, true);
+
+            // TODO: check for moves on enemy piece not registered as possible capture
+
+            // TODO: side_index might not be correct. might be opposite
+            if let Some(_piece) = self.players[side_index].get_piece(&result_position) {
                 // TODO: print piece taken inform
             }
 
@@ -50,7 +62,7 @@ impl GameManager {
             self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
             self.current_side.switch();
         }
-        else {
+        else if let None = player_move {
             // clear the console screen through ANSI codes
             print!("{}[2J", 27 as char);
             print!("{}[1;1H", 27 as char);
@@ -63,10 +75,12 @@ impl GameManager {
                     .expect("Failed to read option");
                 option = option.trim().to_string();
 
-                if option != "exit" {
-                    self.perform_command(&option);
+                self.perform_command(&option);
+                if option == "exit"{
+                    break;
                 }
-                else {
+                else if option == "close" {
+                    leave_game = true;
                     break;
                 }
             }
@@ -76,7 +90,7 @@ impl GameManager {
         print!("{}[2J", 27 as char);
         print!("{}[1;1H", 27 as char);
 
-        return false;
+        return leave_game;
     }
 
     fn display_board(&self) {
@@ -125,6 +139,7 @@ impl MenuFunctions for GameManager {
                 GameManager::show_menu();
             }
             "exit" => println!("Exiting menu.."),
+            "close" => self.begin_close(),
             _ => println!("'{}' is not a valid option", option),
         }
     }
@@ -139,6 +154,7 @@ impl MenuFunctions for GameManager {
         println!("\"export\" => saves the current game");
         println!("\"clear\"  => clears the screen to show a clean menu");
         println!("\"exit\"   => return to the game");
+        println!("\"close\"  => close the chess game");
         println!("-- END --");
         // TODO: add new print for each available command
     }
@@ -188,6 +204,7 @@ impl MenuFunctions for GameManager {
         let file_contents = fs::read_to_string(save_file_path)
             .expect("Failed to read the save file.");
 
+        // TODO: check if a pawn has its first move or not
         self.read_save(&file_contents);
 
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
@@ -236,6 +253,7 @@ impl MenuFunctions for GameManager {
                     if let Some(piece) = PieceType::convert(ch) {
                         let side = piece.side();
                         let pos = Position { x: cell, y: row };
+                        // TODO: change first move if not at specific y-coord
                         if side == Side::WHITE {
                             self.players[0].add_piece(pos, piece);
                         }
@@ -319,5 +337,27 @@ impl MenuFunctions for GameManager {
             .expect("Failed to create the save");
         save_file.write_all(board_state.as_bytes())
             .expect("Failed to write the save to the file");
+    }
+
+    fn begin_close(&self) {
+        println!("Do you wish to save before closing? (Yy/Nn):");
+        let mut choice = String::new();
+        loop {
+            io::stdin().read_line(&mut choice)
+                .expect("Failed to read choice");
+            choice = choice.trim().to_string();
+
+            if choice != "Y" && choice != "y" && choice != "N" && choice != "n" {
+                println!("Invalid choice. Type 'Y/y' or 'N/n'");
+                choice = String::new();
+            }
+            else {
+                break;
+            }
+        }
+
+        if choice == "Y" || choice == "y" {
+            self.export_game();
+        }
     }
 }

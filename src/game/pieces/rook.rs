@@ -1,6 +1,10 @@
 use crate::game::side::Side;
 use crate::game::pieces::piece::*;
+use crate::game::move_direction::MoveDirection;
 
+use std::collections::HashSet;
+
+#[derive(Clone)]
 pub struct Rook {
     pub icon: char,
 
@@ -19,9 +23,28 @@ impl Rook {
 }
 
 impl Piece for Rook {
-    fn validate_move(new_move: &str) -> bool {
-        // TODO: generate all possible moves for this piece. Compare with move.
-        // TODO: Turn move to Position, use position comparison
-        return true;
+    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
+        let moves = HashSet::new();
+
+        return moves;
+    }
+
+    fn find_prune_direction(&self, pos: &Position, x_diff: i8, y_diff: i8) -> MoveDirection {
+        let dir = MoveDirection::UP;
+
+        return dir;
+
+    }
+
+    fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
+        let invalids = HashSet::new();
+
+        return invalids;
+    }
+
+    fn prune_moves(initial_pos: &Position, row_max: i8, col_max: i8) -> HashSet<Position> {
+        let mut invalids: HashSet<Position> = HashSet::new();
+
+        return invalids;
     }
 }

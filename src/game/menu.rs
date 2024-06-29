@@ -21,4 +21,6 @@ pub trait MenuFunctions {
     fn export_game(&self);
     fn export_board(&self) -> String;
     fn create_save(game_state: &str);
+
+    fn begin_close(&self);
 }
