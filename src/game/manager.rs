@@ -496,4 +496,34 @@ mod tests {
 
         fs::remove_file(path).unwrap();
     }
+
+    #[test]
+    fn read_valid_board() {
+        let mut gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        gm.validate_save(&fen_string_1).unwrap();
+        gm.read_save(&fen_string_1);
+
+        let p1_pieces = gm.players[0].pieces();
+        let p2_pieces = gm.players[1].pieces();
+        gm.chess_board.update_board(p1_pieces, p2_pieces);
+
+        let board: [[char; 8]; 8] = [
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        ];
+
+        for row in 0..8 {
+            for cell in 0..8 {
+                let piece = gm.chess_board.get_piece(row, cell);
+                assert_eq!(piece, board[row][cell], "Expected '{}', got '{}' at row:{}, cell:{}", piece, board[row][cell], row, cell);
+            }
+        }
+    }
 }
