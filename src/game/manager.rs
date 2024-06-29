@@ -183,24 +183,25 @@ impl MenuFunctions for GameManager {
         return counter;
     }
 
-    fn get_save_path() -> PathBuf {
-        let path = dirs::home_dir()
-            .expect("Failed to get your home directory");
-        let path = path.join(".console-chess").join("saves");
-        if !path.exists() {
-            fs::create_dir_all(&path)
-                .expect("Failed to create the save states folder");
-        }
-
-        return path;
-    }
-
     // TODO: import game history?
     fn import_game(&mut self) {
         let save_states_path = GameManager::get_save_path();
         assert!(save_states_path.exists(), "Attempting to retrieve a save file: the path does not exist");
 
-        let file_contents = GameManager::get_import_name(&save_states_path);
+        let mut file_path: PathBuf;
+        loop {
+            file_path = GameManager::get_save_name(&save_states_path);
+            if !file_path.exists() {
+                println!("Save file does not exist.");
+                continue;
+            }
+
+            break;
+        }
+
+        let file_contents = fs::read_to_string(file_path)
+            .expect("Failed to read the save file.");
+
         // TODO: check if a pawn has its first move or not
         let validation = self.validate_save(&file_contents);
         if let Ok(()) = validation {
@@ -213,41 +214,29 @@ impl MenuFunctions for GameManager {
         self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
     }
 
-    fn get_import_name(path: &PathBuf) -> String {
-        let mut contents = String::new();
-        loop {
-            println!("Enter the save file name:");
-            println!("(save files are located in: {})", path.display());
-            let mut file_name = String::new();
-            io::stdin().read_line(&mut file_name)
-                .expect("Failed to read save file");
-            file_name = file_name.trim().to_string();
-            file_name.push_str(".fen");
-
-            let file_path = path.join(file_name); 
-
-            let read_result = GameManager::retrieve_save_file(&file_path);
-            if let Ok(result) = read_result {
-                contents = result;
-            }
-            else if let Err(error) = read_result {
-                println!("{}", error);
-                continue;
-            }
-
-            break;
+    fn get_save_path() -> PathBuf {
+        let path = dirs::home_dir()
+            .expect("Failed to get your home directory");
+        let path = path.join(".console-chess").join("saves");
+        if !path.exists() {
+            fs::create_dir_all(&path)
+                .expect("Failed to create the save states folder");
         }
-        return contents;
+
+        return path;
     }
 
-    fn retrieve_save_file(path: &PathBuf) -> Result<String, String> {
-        if let Err(_) = fs::File::open(&path) {
-            return Err(format!("Save file '{}' does not exist.", path.display()));
-        }
-        
-        let file_contents = fs::read_to_string(path)
-            .expect("Failed to read the save file.");
-        return Ok(file_contents);
+    fn get_save_name(path: &PathBuf) -> PathBuf {
+        println!("Enter the save file name:");
+        println!("(save files are located in: {})", path.display());
+        let mut file_name = String::new();
+        io::stdin().read_line(&mut file_name)
+            .expect("Failed to read save file");
+        file_name = file_name.trim().to_string();
+        file_name.push_str(".fen");
+
+        let file_path = path.join(&file_name); 
+        return file_path;
     }
 
     fn validate_save(&self, fen_string: &str) -> Result<(), String> {
@@ -278,7 +267,6 @@ impl MenuFunctions for GameManager {
         return Ok(());
     }
 
-    // TODO: test this. call function and check board getpiece at various positions OR check all
     fn read_save(&mut self, fen_string: &str) {
         self.chess_board.clear();
         self.players[0].clear_pieces();
@@ -317,8 +305,27 @@ impl MenuFunctions for GameManager {
     }
 
     fn export_game(&self) {
+        let save_dir = GameManager::get_save_path();
+        let mut save_path: PathBuf;
+        loop {
+
+            save_path = GameManager::get_save_name(&save_dir);
+
+            let mut choice = String::new();
+            if save_path.exists() {
+                println!("Save file already exists. Do you wish to overwrite it?");
+                io::stdin().read_line(&mut choice)
+                    .expect("Failed to read save file");
+                choice = choice.trim().to_string();
+            }
+
+            if choice != "n" && choice != "N" {
+                break;
+            }
+        }
+
         let board_state = self.export_board();
-        GameManager::create_save(&board_state);
+        GameManager::create_save(&save_path, &board_state);
         println!("Finished creating save file.\n -- END --\n");
     }
 
@@ -354,33 +361,8 @@ impl MenuFunctions for GameManager {
         return fen_string;
     }
 
-    // TODO: refactor to be able to test using path input. includes only writing logic
-    fn create_save(board_state: &str) {
-        let mut save_states_path = GameManager::get_save_path();
-
-        println!("Enter the name to give the save:");
-        println!("(save files are stored in: {})", save_states_path.display());
-
-        loop {
-            let mut save_name = String::new();
-            io::stdin().read_line(&mut save_name)
-                .expect("Failed to read the save name");
-            save_name = save_name.trim().to_string();
-            save_name.push_str(".fen");
-
-            let temp_save_path = save_states_path.clone().join(save_name.clone());
-            if !temp_save_path.exists() {
-                save_states_path = save_states_path.join(save_name);
-            }
-            else {
-                println!("Save already exists under that name");
-                continue;
-            }
-
-            break;
-        }
-
-        let mut save_file = File::create(save_states_path)
+    fn create_save(save_path: &PathBuf, board_state: &str) {
+        let mut save_file = File::create(save_path)
             .expect("Failed to create the save");
         save_file.write_all(board_state.as_bytes())
             .expect("Failed to write the save to the file");
@@ -477,27 +459,6 @@ mod tests {
     }
 
     #[test]
-    fn save_file_wrong_path() {
-        let mut path = GameManager::get_save_path();
-        path = path.join("doesnt_exist.fen");
-        let result = GameManager::retrieve_save_file(&path);
-        assert!(result.is_err(), "Expected Error but got {:?}", result);
-    }
-
-    #[test]
-    fn save_file_path_exists() {
-        let mut path = GameManager::get_save_path();
-        path = path.join("file_test.fen");
-
-        File::create(&path).unwrap();
-
-        let result = GameManager::retrieve_save_file(&path);
-        assert!(result.is_ok(), "Expected Ok but got {:?}", result);
-
-        fs::remove_file(path).unwrap();
-    }
-
-    #[test]
     fn read_valid_board() {
         let mut gm = GameManager::new();
         let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
@@ -525,5 +486,15 @@ mod tests {
                 assert_eq!(piece, board[row][cell], "Expected '{}', got '{}' at row:{}, cell:{}", piece, board[row][cell], row, cell);
             }
         }
+    }
+
+    #[test]
+    fn test_board_export() {
+        let gm = GameManager::new();
+
+        let fen_string_export = gm.export_board();
+        let fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+
+        assert_eq!(fen_string_export, fen_string, "Expected fen string: '{}', received: '{}'", fen_string, fen_string_export);
     }
 }
