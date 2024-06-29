@@ -50,7 +50,6 @@ impl Piece for Bishop {
     }
 
     // TODO: could probably reuse for move generation
-    // TODO: test
     fn prune_moves(initial_pos: &Position, dir: MoveDirection) -> HashSet<Position> {
         let mut x_limit = 8 as i8;
         let mut x_increment = 1 as i8;

@@ -77,15 +77,14 @@ impl Player {
         return Some((initial_pos, result_pos));
     }
 
-    // TODO test
-    fn validate_input(&mut self, input: &str) -> Result<(Position, Position), String> {
+    fn validate_input(&self, input: &str) -> Result<(Position, Position), String> {
         if input.len() != 4 { 
             return Err("Move must follow the example format: a1a2".to_string());
         }
 
         let (initial_coord, result_coord) = input.split_at(2);
 
-        if !self.validate_coordinate(&initial_coord) || !self.validate_coordinate(&result_coord) {
+        if !Player::validate_coordinate(&initial_coord) || !Player::validate_coordinate(&result_coord) {
             return Err("Be sure the move lies within the board coordinates".to_string());
         }
 
@@ -112,8 +111,7 @@ impl Player {
         return Ok((old_pos, new_pos));
     }
 
-    // TODO: test
-    fn validate_coordinate(&self, coord: &str) -> bool {
+    fn validate_coordinate(coord: &str) -> bool {
         assert!(coord.len() == 2, "Coordinate string must have exactly two characters.");
 
         let pos_x = coord.chars().nth(0).unwrap();
@@ -127,7 +125,6 @@ impl Player {
         }
     }
 
-    // TODO: test
     pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
         assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
 
@@ -141,12 +138,10 @@ impl Player {
         return &self.pieces;
     }
 
-    // TODO: test
     pub fn get_piece(&self, pos: &Position) -> Option<&PieceType> {
         return self.pieces.get(&pos);
     }
 
-    // TODO: test
     pub fn add_piece(&mut self, pos: Position, piece: PieceType) {
         assert!(pos.x < 8 && pos.y < 8, "Adding piece at position ({},{}) that lies off the board", pos.x, pos.y);
         assert!(!self.pieces.contains_key(&pos), "Adding a piece at a position ({},{}) which already contains a piece", pos.x, pos.y);
@@ -204,5 +199,92 @@ impl Player {
 mod tests {
     use super::*;
 
+    #[test]
+    fn coord_valid() {
+        assert!(Player::validate_coordinate("a1"), "Expected 'a1' to be a valid coordinate");
+        assert!(Player::validate_coordinate("d3"), "Expected 'd3' to be a valid coordinate");
+        assert!(Player::validate_coordinate("h8"), "Expected 'h7' to be a valid coordinate");
+    }
+
+    #[test]
+    fn coord_invalid_outside() {
+        assert!(!Player::validate_coordinate("a9"), "Expected 'a9' to be invalid coordinate");
+        assert!(!Player::validate_coordinate("j1"), "Expected 'j1' to be invalid coordinate");
+    }
+
+    #[test]
+    #[should_panic]
+    fn coord_invalid_invalid() {
+        assert!(Player::validate_coordinate("ddddd"), "Expected 'dddddd' to not be a coordinate");
+    }
+
+    #[test]
+    fn valid_input() {
+        let p = Player::new(Side::WHITE);
+
+        assert!(p.validate_input("d2d3").is_ok(), "Expected 'd2d3' to be a valid move");
+        assert!(p.validate_input("a1a4").is_ok(), "Expected 'a1a4' to be a valid move");
+        assert!(p.validate_input("h1h4").is_ok(), "Expected 'h1h4' to be a valid move");
+    }
+
+    #[test]
+    fn invalid_move() {
+        let p = Player::new(Side::WHITE);
+
+        assert!(p.validate_input("d3d4").is_err(), "Expected 'd3d4' to be invalid as not on player piece");
+        assert!(p.validate_input("a1a2").is_err(), "Expected 'd3d4' to be invalid as moving on your piece");
+        assert!(p.validate_input("movingpiece").is_err(), "Expected 'movingpiece' to be invalid as it isnt a move");
+    }
+
+    #[test]
+    fn apply_move() {
+        let mut p = Player::new(Side::WHITE);
+
+        {
+            let piece = Position { x: 3, y: 1 };
+            let move_to = Position { x: 3, y: 2 };
+
+            p.apply_move(&piece, &move_to);
+            assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
+            assert!(p.get_piece(&piece).is_none(), "Expected piece at position ({},{}) to not exist", piece.x, piece.y);
+        }
+    }
+
+    #[test]
+    #[should_panic]
+    fn apply_move_on_nothing() {
+        let mut p = Player::new(Side::WHITE);
+
+        let piece = Position { x: 3, y: 3 };
+        let move_to = Position { x: 3, y: 2 };
+
+        p.apply_move(&piece, &move_to);
+    }
+
+    #[test]
+    fn add_new_piece() {
+        let mut p = Player::new(Side::WHITE);
+
+        let pos = Position { x: 4, y: 4 };
+        p.add_piece(pos, PieceType::Pawn(Pawn::new(Side::WHITE)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_piece_that_exists() {
+        let mut p = Player::new(Side::WHITE);
+
+        let pos = Position { x: 1, y: 1 };
+        p.add_piece(pos, PieceType::Pawn(Pawn::new(Side::WHITE)));
+    }
+
+    #[test]
+    #[should_panic]
+    fn add_piece_out_of_bounds() {
+        let mut p = Player::new(Side::WHITE);
+
+        let pos = Position { x: 9, y: 1 };
+        p.add_piece(pos, PieceType::Pawn(Pawn::new(Side::WHITE)));
+    }
 }
 
