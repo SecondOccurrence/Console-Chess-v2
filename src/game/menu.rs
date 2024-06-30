@@ -13,14 +13,15 @@ pub trait MenuFunctions {
     fn tally_pieces(pieces: &HashMap<Position, PieceType>) -> HashMap<char, usize>;
 
     fn get_save_path() -> PathBuf;
+    fn get_save_name(path: &PathBuf) -> PathBuf;
 
     fn import_game(&mut self);
-    fn retrieve_save_file(path: &PathBuf) -> PathBuf;
+    fn validate_save(&self, fen_string: &str) -> Result<(), String>;
     fn read_save(&mut self, fen_string: &str);
 
     fn export_game(&self);
     fn export_board(&self) -> String;
-    fn create_save(game_state: &str);
+    fn create_save(save_path: &PathBuf, board_state: &str);
 
     fn begin_close(&self);
 }

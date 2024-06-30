@@ -29,8 +29,8 @@ impl Piece for Knight {
         return moves;
     }
 
-    fn find_prune_direction(&self, pos: &Position, x_diff: i8, y_diff: i8) -> MoveDirection {
-        let dir = MoveDirection::UP;
+    fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
+        let dir = MoveDirection::Up;
 
         return dir;
 
@@ -42,7 +42,7 @@ impl Piece for Knight {
         return invalids;
     }
 
-    fn prune_moves(initial_pos: &Position, row_max: i8, col_max: i8) -> HashSet<Position> {
+    fn prune_moves(initial_pos: &Position, dir: MoveDirection) -> HashSet<Position> {
         let mut invalids: HashSet<Position> = HashSet::new();
 
         return invalids;

@@ -46,9 +46,9 @@ impl GameManager {
             
             // TODO: understand borrowing temp fix clone
             let player_pieces = self.players[side_index].pieces().clone();
-            let opponent_pieces = self.players[!side_index].pieces().clone();
+            //let opponent_pieces = self.players[!side_index].pieces().clone();
             self.players[side_index].prune_possible_moves(player_pieces, false);
-            self.players[side_index].prune_possible_moves(opponent_pieces, true);
+            //self.players[side_index].prune_possible_moves(opponent_pieces, true);
 
             // TODO: check for moves on enemy piece not registered as possible capture
 
@@ -118,7 +118,6 @@ impl GameManager {
 
 impl MenuFunctions for GameManager {
     // TODO: add startup menu 
-    
     fn show_menu() {
         println!("\n-- menu --");
         println!("enter \"exit\" to return to the game");
@@ -184,6 +183,37 @@ impl MenuFunctions for GameManager {
         return counter;
     }
 
+    // TODO: import game history?
+    fn import_game(&mut self) {
+        let save_states_path = GameManager::get_save_path();
+        assert!(save_states_path.exists(), "Attempting to retrieve a save file: the path does not exist");
+
+        let mut file_path: PathBuf;
+        loop {
+            file_path = GameManager::get_save_name(&save_states_path);
+            if !file_path.exists() {
+                println!("Save file does not exist.");
+                continue;
+            }
+
+            break;
+        }
+
+        let file_contents = fs::read_to_string(file_path)
+            .expect("Failed to read the save file.");
+
+        // TODO: check if a pawn has its first move or not
+        let validation = self.validate_save(&file_contents);
+        if let Ok(()) = validation {
+            self.read_save(&file_contents);
+        }
+        else if let Err(error) = validation {
+            println!("Could not read the save file: {}", error);
+        }
+
+        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
+    }
+
     fn get_save_path() -> PathBuf {
         let path = dirs::home_dir()
             .expect("Failed to get your home directory");
@@ -196,43 +226,45 @@ impl MenuFunctions for GameManager {
         return path;
     }
 
-    // TODO: import game history?
-    fn import_game(&mut self) {
-        let save_states_path = GameManager::get_save_path();
-        let save_file_path = GameManager::retrieve_save_file(&save_states_path);
+    fn get_save_name(path: &PathBuf) -> PathBuf {
+        println!("Enter the save file name:");
+        println!("(save files are located in: {})", path.display());
+        let mut file_name = String::new();
+        io::stdin().read_line(&mut file_name)
+            .expect("Failed to read save file");
+        file_name = file_name.trim().to_string();
+        file_name.push_str(".fen");
 
-        let file_contents = fs::read_to_string(save_file_path)
-            .expect("Failed to read the save file.");
-
-        // TODO: check if a pawn has its first move or not
-        self.read_save(&file_contents);
-
-        self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
+        let file_path = path.join(&file_name); 
+        return file_path;
     }
 
-    fn retrieve_save_file(path: &PathBuf) -> PathBuf {
-        assert!(path.exists(), "Attempting to retrieve a save file: the path does not exist");
-
-        let mut file_path: PathBuf;
-        loop {
-            println!("Enter the save file name:");
-            println!("(save files are located in: {})", path.display());
-            let mut file_name = String::new();
-            io::stdin().read_line(&mut file_name)
-                .expect("Failed to read move");
-            file_name = file_name.trim().to_string();
-            file_name.push_str(".fen");
-
-            file_path = path.join(file_name); 
-            if let Err(_) = fs::File::open(&file_path) {
-                println!("Save file does not exist.\n");
-                continue;
-            }
-            
-            break;
+    fn validate_save(&self, fen_string: &str) -> Result<(), String> {
+        let split_input: Vec<&str> = fen_string.split('/').collect();
+        if split_input.len() != 8 {
+            return Err(format!("FEN string: expected 8 rows, found {}", split_input.len()));
         }
 
-        return file_path;
+        for row in split_input.iter() {
+            let mut cell_num = 0;
+            for cell in row.chars() {
+                if cell.is_digit(10) {
+                    cell_num += cell.to_digit(10).unwrap();
+                }
+                else {
+                    if let None = PieceType::convert(cell) {
+                        return Err(format!("FEN string cell: expected piece, found '{}'", cell));
+                    }
+                    cell_num += 1;
+                }
+            }
+
+            if cell_num != 8 {
+                return Err(format!("FEN string row: expected 8 cells, found {}", cell_num));
+            }
+        }
+        
+        return Ok(());
     }
 
     fn read_save(&mut self, fen_string: &str) {
@@ -250,16 +282,18 @@ impl MenuFunctions for GameManager {
                     cell += ch.to_digit(10).unwrap() as i8; 
                 }
                 else {
-                    if let Some(piece) = PieceType::convert(ch) {
-                        let side = piece.side();
-                        let pos = Position { x: cell, y: row };
-                        // TODO: change first move if not at specific y-coord
-                        if side == Side::WHITE {
-                            self.players[0].add_piece(pos, piece);
-                        }
-                        else {
-                            self.players[1].add_piece(pos, piece);
-                        }
+                    let convert_result = PieceType::convert(ch);
+                    assert!(convert_result.is_some(), "Piece conversion: expected some, but got none");
+                    let piece = convert_result.unwrap();
+
+                    let side = piece.side();
+                    let pos = Position { x: cell, y: row };
+                    // TODO: change first move if not at specific y-coord
+                    if side == Side::WHITE {
+                        self.players[0].add_piece(pos, piece);
+                    }
+                    else {
+                        self.players[1].add_piece(pos, piece);
                     }
                     cell += 1;
                 }
@@ -271,8 +305,27 @@ impl MenuFunctions for GameManager {
     }
 
     fn export_game(&self) {
+        let save_dir = GameManager::get_save_path();
+        let mut save_path: PathBuf;
+        loop {
+
+            save_path = GameManager::get_save_name(&save_dir);
+
+            let mut choice = String::new();
+            if save_path.exists() {
+                println!("Save file already exists. Do you wish to overwrite it?");
+                io::stdin().read_line(&mut choice)
+                    .expect("Failed to read save file");
+                choice = choice.trim().to_string();
+            }
+
+            if choice != "n" && choice != "N" {
+                break;
+            }
+        }
+
         let board_state = self.export_board();
-        GameManager::create_save(&board_state);
+        GameManager::create_save(&save_path, &board_state);
         println!("Finished creating save file.\n -- END --\n");
     }
 
@@ -308,32 +361,8 @@ impl MenuFunctions for GameManager {
         return fen_string;
     }
 
-    fn create_save(board_state: &str) {
-        let mut save_states_path = GameManager::get_save_path();
-
-        println!("Enter the name to give the save:");
-        println!("(save files are stored in: {})", save_states_path.display());
-
-        loop {
-            let mut save_name = String::new();
-            io::stdin().read_line(&mut save_name)
-                .expect("Failed to read the save name");
-            save_name = save_name.trim().to_string();
-            save_name.push_str(".fen");
-
-            let temp_save_path = save_states_path.clone().join(save_name.clone());
-            if !temp_save_path.exists() {
-                save_states_path = save_states_path.join(save_name);
-            }
-            else {
-                println!("Save already exists under that name");
-                continue;
-            }
-
-            break;
-        }
-
-        let mut save_file = File::create(save_states_path)
+    fn create_save(save_path: &PathBuf, board_state: &str) {
+        let mut save_file = File::create(save_path)
             .expect("Failed to create the save");
         save_file.write_all(board_state.as_bytes())
             .expect("Failed to write the save to the file");
@@ -359,5 +388,113 @@ impl MenuFunctions for GameManager {
         if choice == "Y" || choice == "y" {
             self.export_game();
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    #[should_panic]
+    fn board_length_upper_lim() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR/8";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_length_lower_lim() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_1() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/7/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_2() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnrr/pppppppp/8/8/8/8/PPPPPPPP";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_row_length_3() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnrr/pppppppp/8/8/8/8/PPPPPPPP/";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    #[should_panic]
+    fn board_cell_invalid_piece() {
+        let gm = GameManager::new();
+        let fen_string_1 = "rnbVkbnr/pppppppp/8/8/8/8/PPPPPPPP/";
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+    }
+
+    #[test]
+    fn valid_board() {
+        let gm = GameManager::new();
+
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        let fen_string_2 = "r2qkbnr/p1p1pppp/b1np4/1p6/2B2P2/4P3/PPPP1KPP/RNBQ2NR";
+        let fen_string_3 = "rNb1kN1r/ppp1pppp/3p1n2/8/Pq6/2PPP3/1P3PPP/RNB1KB1R";
+        let fen_string_4 = "rNb1kN1r/ppp1ppRp/3p4/8/P6P/3qP3/5PP1/R3Kn2";
+
+        assert_eq!(gm.validate_save(&fen_string_1), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_2), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_3), Ok(()));
+        assert_eq!(gm.validate_save(&fen_string_4), Ok(()));
+    }
+
+    #[test]
+    fn read_valid_board() {
+        let mut gm = GameManager::new();
+        let fen_string_1 = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        gm.validate_save(&fen_string_1).unwrap();
+        gm.read_save(&fen_string_1);
+
+        let p1_pieces = gm.players[0].pieces();
+        let p2_pieces = gm.players[1].pieces();
+        gm.chess_board.update_board(p1_pieces, p2_pieces);
+
+        let board: [[char; 8]; 8] = [
+            ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'],
+            ['P', 'P', 'P', 'P', 'P', 'P', 'P', 'P'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['.', '.', '.', '.', '.', '.', '.', '.'],
+            ['p', 'p', 'p', 'p', 'p', 'p', 'p', 'p'],
+            ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r'],
+        ];
+
+        for row in 0..8 {
+            for cell in 0..8 {
+                let piece = gm.chess_board.get_piece(row, cell);
+                assert_eq!(piece, board[row][cell], "Expected '{}', got '{}' at row:{}, cell:{}", piece, board[row][cell], row, cell);
+            }
+        }
+    }
+
+    #[test]
+    fn test_board_export() {
+        let gm = GameManager::new();
+
+        let fen_string_export = gm.export_board();
+        let fen_string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+
+        assert_eq!(fen_string_export, fen_string, "Expected fen string: '{}', received: '{}'", fen_string, fen_string_export);
     }
 }
