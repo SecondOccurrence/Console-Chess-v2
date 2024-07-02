@@ -49,7 +49,6 @@ impl Piece for Bishop {
         return invalids;
     }
 
-    // TODO: could probably reuse for move generation
     fn move_generation(initial_pos: &Position, dir: MoveDirection) -> HashSet<Position> {
         let mut x_limit = 8 as i8;
         let mut x_increment = 1 as i8;
@@ -66,7 +65,7 @@ impl Piece for Bishop {
         }
 
         let mut invalids: HashSet<Position> = HashSet::new();
-        let mut invalid_pos = *initial_pos;
+        let mut invalid_pos = Position { x: (*initial_pos).x + x_increment, y: (*initial_pos).y + y_increment };
         while invalid_pos.x != x_limit && invalid_pos.y != y_limit {
             invalids.insert(invalid_pos);
 
@@ -103,8 +102,7 @@ mod tests {
 
         {
             let moves = Bishop::move_generation(&collision_piece, MoveDirection::UpRight);
-            let positions: [Position; 4] = [
-                Position { x: 4, y: 4 },
+            let positions: [Position; 3] = [
                 Position { x: 5, y: 5 },
                 Position { x: 6, y: 6 },
                 Position { x: 7, y: 7 },
@@ -114,8 +112,7 @@ mod tests {
 
         {
             let moves = Bishop::move_generation(&collision_piece, MoveDirection::UpLeft);
-            let positions: [Position; 4] = [
-                Position { x: 4, y: 4 },
+            let positions: [Position; 3] = [
                 Position { x: 3, y: 5 },
                 Position { x: 2, y: 6 },
                 Position { x: 1, y: 7 },
@@ -125,8 +122,7 @@ mod tests {
 
         {
             let moves = Bishop::move_generation(&collision_piece, MoveDirection::DownRight);
-            let positions: [Position; 4] = [
-                Position { x: 4, y: 4 },
+            let positions: [Position; 3] = [
                 Position { x: 5, y: 3 },
                 Position { x: 6, y: 2 },
                 Position { x: 7, y: 1 },
@@ -136,8 +132,7 @@ mod tests {
 
         {
             let moves = Bishop::move_generation(&collision_piece, MoveDirection::DownLeft);
-            let positions: [Position; 5] = [
-                Position { x: 4, y: 4 },
+            let positions: [Position; 4] = [
                 Position { x: 3, y: 3 },
                 Position { x: 2, y: 2 },
                 Position { x: 1, y: 1 },
