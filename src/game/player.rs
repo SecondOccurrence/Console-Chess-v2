@@ -1,5 +1,6 @@
 use crate::game::side::Side;
 use crate::game::pieces::*;
+use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -51,8 +52,8 @@ impl Player {
         return map;
     }
 
-    pub fn move_input(&mut self) -> Option<(Position, Position)> {
-        let (initial_pos, result_pos): (Position, Position);
+    pub fn move_input(&mut self) -> Option<Position> {
+        let result_pos: Position;
         loop {
             let mut new_move = String::new();
             io::stdin().read_line(&mut new_move)
@@ -68,13 +69,15 @@ impl Player {
                 println!("{}", error);
             }
             else if let Ok((initial, result)) = validation {
-                initial_pos = initial;
+                self.current_piece.0 = initial;
+                self.current_piece.1 = self.get_piece(&initial).unwrap().clone();
+
                 result_pos = result;
                 break;
             }
         }
 
-        return Some((initial_pos, result_pos));
+        return Some(result_pos);
     }
 
     fn validate_input(&self, input: &str) -> Result<(Position, Position), String> {
@@ -125,10 +128,10 @@ impl Player {
         }
     }
 
-    pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
-        assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
+    pub fn apply_move(&mut self, result_pos: &Position) {
+        assert!(self.pieces.contains_key(&self.current_piece.0), "None of the players pieces are located at the initial position");
 
-        let piece = self.pieces.remove(initial_pos).unwrap();
+        let piece = self.pieces.remove(&self.current_piece.0).unwrap();
 
         self.pieces.insert(*result_pos, piece);
         println!("piece moved");
@@ -154,11 +157,23 @@ impl Player {
     }
 
     // TODO: test
-    pub fn generate_possible_moves(&mut self, piece_at_pos: &Position) {
+    pub fn generate_possible_moves(&mut self) {
+        let piece_at_pos = self.current_piece.0;
+
         assert!(self.pieces.contains_key(&piece_at_pos), "Generating moves for a piece that does not exist at ({},{})", piece_at_pos.x, piece_at_pos.y);
 
-        self.current_piece = (*piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
-        self.possible_moves = self.pieces.get_mut(&piece_at_pos).unwrap().possible_moves(&piece_at_pos);
+        self.current_piece = (piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
+
+        let up_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpLeft);
+        let up_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpRight);
+        let down_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownLeft);
+        let down_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownRight);
+
+        self.possible_moves = up_left_moves
+            .union(&up_right_moves)
+            .cloned()
+            .chain(down_left_moves.union(&down_right_moves).cloned())
+            .collect();
     }
 
     // TODO: test
@@ -240,14 +255,16 @@ mod tests {
     fn apply_move() {
         let mut p = Player::new(Side::WHITE);
 
-        {
-            let piece = Position { x: 3, y: 1 };
-            let move_to = Position { x: 3, y: 2 };
+        p.current_piece.0 = Position { x: 3, y: 1 };
+        assert!(p.get_piece(&p.current_piece.0).is_some(), "Expected piece at position ({},{}) to exist before moving", p.current_piece.0.x, p.current_piece.0.y);
 
-            p.apply_move(&piece, &move_to);
-            assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
-            assert!(p.get_piece(&piece).is_none(), "Expected piece at position ({},{}) to not exist", piece.x, piece.y);
-        }
+        p.current_piece.1 = p.get_piece(&p.current_piece.0).unwrap().clone();
+
+        let move_to = Position { x: 3, y: 2 };
+
+        p.apply_move(&move_to);
+        assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
+        assert!(p.get_piece(&p.current_piece.0).is_none(), "Expected piece at position ({},{}) to not exist", p.current_piece.0.x, p.current_piece.0.y);
     }
 
     #[test]
@@ -255,10 +272,12 @@ mod tests {
     fn apply_move_on_nothing() {
         let mut p = Player::new(Side::WHITE);
 
-        let piece = Position { x: 3, y: 3 };
+        p.current_piece.0 = Position { x: 3, y: 3 };
+        assert!(p.get_piece(&p.current_piece.0).is_some(), "Expected piece at position ({},{}) to exist before moving", p.current_piece.0.x, p.current_piece.0.y);
+
         let move_to = Position { x: 3, y: 2 };
 
-        p.apply_move(&piece, &move_to);
+        p.apply_move(&move_to);
     }
 
     #[test]

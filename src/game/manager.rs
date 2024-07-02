@@ -41,8 +41,8 @@ impl GameManager {
         }
 
         let player_move = self.players[side_index].move_input();
-        if let Some((initial_position, result_position)) = player_move {
-            self.players[side_index].generate_possible_moves(&initial_position);
+        if let Some(result_position) = player_move {
+            self.players[side_index].generate_possible_moves();
             
             // TODO: understand borrowing temp fix clone
             let player_pieces = self.players[side_index].pieces().clone();
@@ -57,7 +57,7 @@ impl GameManager {
                 // TODO: print piece taken inform
             }
 
-            self.players[side_index].apply_move(&initial_position, &result_position);
+            self.players[side_index].apply_move(&result_position);
 
             self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
             self.current_side.switch();

@@ -42,7 +42,7 @@ impl Piece for King {
         return invalids;
     }
 
-    fn prune_moves(initial_pos: &Position, dir: MoveDirection) -> HashSet<Position> {
+    fn move_generation(initial_pos: &Position, dir: MoveDirection) -> HashSet<Position> {
         let mut invalids: HashSet<Position> = HashSet::new();
 
         return invalids;
