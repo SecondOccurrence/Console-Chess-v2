@@ -305,5 +305,36 @@ mod tests {
         let pos = Position { x: 9, y: 1 };
         p.add_piece(pos, PieceType::Pawn(Pawn::new(Side::WHITE)));
     }
+
+    #[test]
+    fn test_move_generation() {
+        let mut p = Player::new(Side::WHITE);
+
+        let pos = Position { x: 5, y: 3 };
+        p.add_piece(pos, PieceType::Bishop(Bishop::new(Side::WHITE)));
+
+        p.current_piece.0 = pos;
+        p.current_piece.1 = p.get_piece(&p.current_piece.0).unwrap().clone();
+
+        p.generate_possible_moves();
+
+        let actual_possible_moves: [Position; 11] = [
+            Position { x: 4, y: 4 },
+            Position { x: 3, y: 5 },
+            Position { x: 2, y: 6 },
+            Position { x: 1, y: 7 },
+            Position { x: 6, y: 4 },
+            Position { x: 7, y: 5 },
+            Position { x: 4, y: 2 },
+            Position { x: 3, y: 1 },
+            Position { x: 2, y: 0 },
+            Position { x: 6, y: 2 },
+            Position { x: 7, y: 1 },
+        ];
+
+        for current_move in actual_possible_moves.iter() {
+            assert!(p.possible_moves.get(&current_move).is_some(), "Expected move ({},{}) to exist as a possible move", current_move.x, current_move.y);
+        }
+    }
 }
 
