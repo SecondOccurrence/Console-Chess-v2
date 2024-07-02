@@ -15,6 +15,7 @@ pub struct GameManager {
     current_side: Side,   
     chess_board: ChessBoard,
     players: [Player; 2],
+    move_again: bool,
 }
 
 impl GameManager {
@@ -23,13 +24,16 @@ impl GameManager {
         let chess_board = ChessBoard::new();
         let player1 = Player::new(Side::WHITE);
         let player2 = Player::new(Side::BLACK);
-        GameManager { current_side, chess_board, players: [player1, player2] }
+        let move_again = false;
+        GameManager { current_side, chess_board, players: [player1, player2], move_again }
     }
 
     pub fn run(&mut self) -> bool {
         let mut leave_game = false;
 
-        self.display_board();
+        if !self.move_again {
+            self.display_board();
+        }
 
         let side_index = self.current_side.to_index();
 
@@ -41,26 +45,34 @@ impl GameManager {
         }
 
         let player_move = self.players[side_index].move_input();
-        if let Some((initial_position, result_position)) = player_move {
-            self.players[side_index].generate_possible_moves(&initial_position);
+        if let Some(result_position) = player_move {
+            self.players[side_index].generate_possible_moves();
             
-            // TODO: understand borrowing temp fix clone
             let player_pieces = self.players[side_index].pieces().clone();
-            //let opponent_pieces = self.players[!side_index].pieces().clone();
+            let opponent_pieces = self.players[side_index^1].pieces().clone();
             self.players[side_index].prune_possible_moves(player_pieces, false);
-            //self.players[side_index].prune_possible_moves(opponent_pieces, true);
-
-            // TODO: check for moves on enemy piece not registered as possible capture
+            self.players[side_index].prune_possible_moves(opponent_pieces, true);
 
             // TODO: side_index might not be correct. might be opposite
             if let Some(_piece) = self.players[side_index].get_piece(&result_position) {
                 // TODO: print piece taken inform
             }
 
-            self.players[side_index].apply_move(&initial_position, &result_position);
+            let move_result = self.players[side_index].apply_move(&result_position);
+            if let Ok(()) = move_result {
+                self.move_again = false;
 
-            self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
-            self.current_side.switch();
+                self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
+                self.current_side.switch();
+
+                // clear the console screen through ANSI codes
+                print!("{}[2J", 27 as char);
+                print!("{}[1;1H", 27 as char);
+            }
+            else if let Err(err) = move_result {
+                self.move_again = true;
+                println!("{}, try again.", err);
+            }
         }
         else if let None = player_move {
             // clear the console screen through ANSI codes
@@ -85,10 +97,6 @@ impl GameManager {
                 }
             }
         }
-
-        // clear the console screen through ANSI codes
-        print!("{}[2J", 27 as char);
-        print!("{}[1;1H", 27 as char);
 
         return leave_game;
     }
@@ -240,10 +248,18 @@ impl MenuFunctions for GameManager {
     }
 
     fn validate_save(&self, fen_string: &str) -> Result<(), String> {
-        let split_input: Vec<&str> = fen_string.split('/').collect();
+        let input = if fen_string.ends_with('\n') {
+            fen_string.trim_end()
+        }
+        else {
+            &fen_string
+        };
+
+        let split_input: Vec<&str> = input.split('/').collect();
         if split_input.len() != 8 {
             return Err(format!("FEN string: expected 8 rows, found {}", split_input.len()));
         }
+
 
         for row in split_input.iter() {
             let mut cell_num = 0;
@@ -275,7 +291,14 @@ impl MenuFunctions for GameManager {
         let mut row = 7 as i8;
         let mut cell = 0 as i8;
 
-        let mut split_input = fen_string.split('/');
+        let input = if fen_string.ends_with('\n') {
+            fen_string.trim_end()
+        }
+        else {
+            &fen_string
+        };
+
+        let mut split_input = input.split('/');
         while let Some(substring) = split_input.next() {
             for ch in substring.chars() {
                 if ch.is_digit(10) {

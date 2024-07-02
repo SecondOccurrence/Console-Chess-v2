@@ -1,5 +1,6 @@
 use crate::game::side::Side;
 use crate::game::pieces::*;
+use crate::game::move_direction::MoveDirection;
 
 use std::collections::HashMap;
 use std::collections::HashSet;
@@ -51,8 +52,8 @@ impl Player {
         return map;
     }
 
-    pub fn move_input(&mut self) -> Option<(Position, Position)> {
-        let (initial_pos, result_pos): (Position, Position);
+    pub fn move_input(&mut self) -> Option<Position> {
+        let result_pos: Position;
         loop {
             let mut new_move = String::new();
             io::stdin().read_line(&mut new_move)
@@ -68,13 +69,15 @@ impl Player {
                 println!("{}", error);
             }
             else if let Ok((initial, result)) = validation {
-                initial_pos = initial;
+                self.current_piece.0 = initial;
+                self.current_piece.1 = self.get_piece(&initial).unwrap().clone();
+
                 result_pos = result;
                 break;
             }
         }
 
-        return Some((initial_pos, result_pos));
+        return Some(result_pos);
     }
 
     fn validate_input(&self, input: &str) -> Result<(Position, Position), String> {
@@ -125,13 +128,19 @@ impl Player {
         }
     }
 
-    pub fn apply_move(&mut self, initial_pos: &Position, result_pos: &Position) {
-        assert!(self.pieces.contains_key(initial_pos), "None of the players pieces are located at the initial position");
+    pub fn apply_move(&mut self, result_pos: &Position) -> Result<(), String> {
+        assert!(self.pieces.contains_key(&self.current_piece.0), "None of the players pieces are located at the initial position");
 
-        let piece = self.pieces.remove(initial_pos).unwrap();
+        for possible_move in self.possible_moves.iter() {
+            if possible_move.x == result_pos.x && possible_move.y == result_pos.y {
+                let piece = self.pieces.remove(&self.current_piece.0).unwrap();
 
-        self.pieces.insert(*result_pos, piece);
-        println!("piece moved");
+                self.pieces.insert(*result_pos, piece);
+                return Ok(());
+            }
+        }
+
+        return Err("Move is invalid for this piece.".to_string());
     }
 
     pub fn pieces(&self) -> &HashMap<Position, PieceType> {
@@ -153,17 +162,27 @@ impl Player {
         self.pieces.clear();
     }
 
-    // TODO: test
-    pub fn generate_possible_moves(&mut self, piece_at_pos: &Position) {
+    pub fn generate_possible_moves(&mut self) {
+        let piece_at_pos = self.current_piece.0;
+
         assert!(self.pieces.contains_key(&piece_at_pos), "Generating moves for a piece that does not exist at ({},{})", piece_at_pos.x, piece_at_pos.y);
 
-        self.current_piece = (*piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
-        self.possible_moves = self.pieces.get_mut(&piece_at_pos).unwrap().possible_moves(&piece_at_pos);
+        self.current_piece = (piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
+
+        let up_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpLeft);
+        let up_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpRight);
+        let down_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownLeft);
+        let down_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownRight);
+
+        self.possible_moves = up_left_moves
+            .union(&up_right_moves)
+            .cloned()
+            .chain(down_left_moves.union(&down_right_moves).cloned())
+            .collect();
     }
 
-    // TODO: test
     pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
-        assert!(self.current_piece.0.x == -1, "Pruning possible moves when no current piece is known to the player.");
+        assert!(self.current_piece.0.x != -1, "Pruning possible moves when no current piece is known to the player.");
 
         for (itr_pos, _) in pieces_to_compare.iter() {
             let piece_in_path = match self.possible_moves.get(itr_pos) {
@@ -176,7 +195,7 @@ impl Player {
             let x_diff = (self.current_piece.0.x - found_pos.x) as i8;
             let y_diff = (self.current_piece.0.y - found_pos.y) as i8;
 
-            let mut moves_to_prune = self.current_piece.1.invalid_moves(&self.current_piece.0, x_diff, y_diff);
+            let mut moves_to_prune = self.current_piece.1.invalid_moves(&found_pos, x_diff, y_diff);
             if !capturing {
                 moves_to_prune.insert(found_pos);
             }
@@ -240,14 +259,17 @@ mod tests {
     fn apply_move() {
         let mut p = Player::new(Side::WHITE);
 
-        {
-            let piece = Position { x: 3, y: 1 };
-            let move_to = Position { x: 3, y: 2 };
+        p.current_piece.0 = Position { x: 3, y: 1 };
+        assert!(p.get_piece(&p.current_piece.0).is_some(), "Expected piece at position ({},{}) to exist before moving", p.current_piece.0.x, p.current_piece.0.y);
 
-            p.apply_move(&piece, &move_to);
-            assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
-            assert!(p.get_piece(&piece).is_none(), "Expected piece at position ({},{}) to not exist", piece.x, piece.y);
-        }
+        p.current_piece.1 = p.get_piece(&p.current_piece.0).unwrap().clone();
+
+        let move_to = Position { x: 3, y: 2 };
+        p.possible_moves.insert(move_to);
+
+        let _ = p.apply_move(&move_to);
+        assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
+        assert!(p.get_piece(&p.current_piece.0).is_none(), "Expected piece at position ({},{}) to not exist", p.current_piece.0.x, p.current_piece.0.y);
     }
 
     #[test]
@@ -255,10 +277,12 @@ mod tests {
     fn apply_move_on_nothing() {
         let mut p = Player::new(Side::WHITE);
 
-        let piece = Position { x: 3, y: 3 };
+        p.current_piece.0 = Position { x: 3, y: 3 };
+        assert!(p.get_piece(&p.current_piece.0).is_some(), "Expected piece at position ({},{}) to exist before moving", p.current_piece.0.x, p.current_piece.0.y);
+
         let move_to = Position { x: 3, y: 2 };
 
-        p.apply_move(&piece, &move_to);
+        p.apply_move(&move_to);
     }
 
     #[test]
@@ -285,6 +309,75 @@ mod tests {
 
         let pos = Position { x: 9, y: 1 };
         p.add_piece(pos, PieceType::Pawn(Pawn::new(Side::WHITE)));
+    }
+
+    #[test]
+    fn test_move_generation() {
+        let mut p = Player::new(Side::WHITE);
+
+        let pos = Position { x: 5, y: 3 };
+        p.add_piece(pos, PieceType::Bishop(Bishop::new(Side::WHITE)));
+
+        p.current_piece.0 = pos;
+        p.current_piece.1 = p.get_piece(&p.current_piece.0).unwrap().clone();
+
+        p.generate_possible_moves();
+
+        let actual_possible_moves: [Position; 11] = [
+            Position { x: 4, y: 4 },
+            Position { x: 3, y: 5 },
+            Position { x: 2, y: 6 },
+            Position { x: 1, y: 7 },
+            Position { x: 6, y: 4 },
+            Position { x: 7, y: 5 },
+            Position { x: 4, y: 2 },
+            Position { x: 3, y: 1 },
+            Position { x: 2, y: 0 },
+            Position { x: 6, y: 2 },
+            Position { x: 7, y: 1 },
+        ];
+
+        check_possible_moves(&p, &actual_possible_moves);
+    }
+
+    fn check_possible_moves(player: &Player, actual_moves: &[Position]) {
+        assert_eq!(player.possible_moves.len(), actual_moves.len(), "Expected players possible moves equal to '{}', got '{}'", actual_moves.len(), player.possible_moves.len());
+        for current_move in actual_moves.iter() {
+            assert!(player.possible_moves.get(&current_move).is_some(), "Expected move ({},{}) to exist as a possible move", current_move.x, current_move.y);
+        }
+    }
+
+    #[test]
+    fn test_move_pruning() {
+        let mut p1 = Player::new(Side::WHITE);
+        p1.clear_pieces();
+        let mut p2 = Player::new(Side::BLACK);
+        p2.clear_pieces();
+
+        let pos = Position { x: 5, y: 3};
+        p1.add_piece(pos, PieceType::Bishop(Bishop::new(Side::WHITE)));
+        p1.current_piece.0 = pos;
+        p1.current_piece.1 = p1.get_piece(&p1.current_piece.0).unwrap().clone();
+
+        let block_pos_1 = Position { x: 4, y: 2 };
+        let block_pos_2 = Position { x: 3, y: 5 };
+        p2.add_piece(block_pos_1, PieceType::Pawn(Pawn::new(Side::BLACK)));
+        p2.add_piece(block_pos_2, PieceType::Pawn(Pawn::new(Side::BLACK)));
+
+        p1.generate_possible_moves();
+        p1.prune_possible_moves(p2.pieces().clone(), true);
+        
+        let actual_possible_moves: [Position; 7] = [
+            Position { x: 4, y: 4 },
+            Position { x: 3, y: 5 },
+            Position { x: 6, y: 4 },
+            Position { x: 7, y: 5 },
+            Position { x: 4, y: 2 },
+            Position { x: 6, y: 2 },
+            Position { x: 7, y: 1 },
+        ];
+
+        check_possible_moves(&p1, &actual_possible_moves);
     }
 }
 
