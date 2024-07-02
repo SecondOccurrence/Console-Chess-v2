@@ -8,9 +8,9 @@ fn main() {
     let mut quit = false;
 
     // TODO: show a main menu here before entering game
+    print!("{}[2J", 27 as char);
+    print!("{}[1;1H", 27 as char);
     while !quit {
-        print!("{}[2J", 27 as char);
-        print!("{}[1;1H", 27 as char);
         quit = gm.run();
     }
 

@@ -128,13 +128,19 @@ impl Player {
         }
     }
 
-    pub fn apply_move(&mut self, result_pos: &Position) {
+    pub fn apply_move(&mut self, result_pos: &Position) -> Result<(), String> {
         assert!(self.pieces.contains_key(&self.current_piece.0), "None of the players pieces are located at the initial position");
 
-        let piece = self.pieces.remove(&self.current_piece.0).unwrap();
+        for possible_move in self.possible_moves.iter() {
+            if possible_move.x == result_pos.x && possible_move.y == result_pos.y {
+                let piece = self.pieces.remove(&self.current_piece.0).unwrap();
 
-        self.pieces.insert(*result_pos, piece);
-        println!("piece moved");
+                self.pieces.insert(*result_pos, piece);
+                return Ok(());
+            }
+        }
+
+        return Err("Move is invalid for this piece.".to_string());
     }
 
     pub fn pieces(&self) -> &HashMap<Position, PieceType> {
@@ -259,8 +265,9 @@ mod tests {
         p.current_piece.1 = p.get_piece(&p.current_piece.0).unwrap().clone();
 
         let move_to = Position { x: 3, y: 2 };
+        p.possible_moves.insert(move_to);
 
-        p.apply_move(&move_to);
+        let _ = p.apply_move(&move_to);
         assert!(p.get_piece(&move_to).is_some(), "Expected piece at position ({},{}) to exist", move_to.x, move_to.y);
         assert!(p.get_piece(&p.current_piece.0).is_none(), "Expected piece at position ({},{}) to not exist", p.current_piece.0.x, p.current_piece.0.y);
     }
