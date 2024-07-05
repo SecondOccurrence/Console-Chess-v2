@@ -4,7 +4,11 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub trait MenuFunctions {
-    fn show_menu();
+    fn enter_main_menu();
+    fn main_menu_loop();
+
+    fn enter_menu(&mut self);
+    fn menu_loop(&mut self);
     fn perform_command(&mut self, option: &str);
 
     fn help_menu(&self);

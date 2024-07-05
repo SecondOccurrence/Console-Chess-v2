@@ -16,6 +16,7 @@ pub struct GameManager {
     chess_board: ChessBoard,
     players: [Player; 2],
     move_again: bool,
+    leave_game: bool,
 }
 
 impl GameManager {
@@ -25,12 +26,16 @@ impl GameManager {
         let player1 = Player::new(Side::WHITE);
         let player2 = Player::new(Side::BLACK);
         let move_again = false;
-        GameManager { current_side, chess_board, players: [player1, player2], move_again }
+        let leave_game = false;
+
+        GameManager { 
+            current_side, chess_board, 
+            players: [player1, player2],
+            move_again, leave_game
+        }
     }
 
     pub fn run(&mut self) -> bool {
-        let mut leave_game = false;
-
         if !self.move_again {
             self.display_board();
         }
@@ -75,30 +80,18 @@ impl GameManager {
             }
         }
         else if let None = player_move {
+            self.move_again = false;
             // clear the console screen through ANSI codes
             print!("{}[2J", 27 as char);
             print!("{}[1;1H", 27 as char);
 
-            GameManager::show_menu();
-            loop {
-                println!("Enter an option:");
-                let mut option = String::new();
-                io::stdin().read_line(&mut option)
-                    .expect("Failed to read option");
-                option = option.trim().to_string();
+            self.enter_menu();
 
-                self.perform_command(&option);
-                if option == "exit"{
-                    break;
-                }
-                else if option == "close" {
-                    leave_game = true;
-                    break;
-                }
-            }
+            print!("{}[2J", 27 as char);
+            print!("{}[1;1H", 27 as char);
         }
 
-        return leave_game;
+        return self.leave_game;
     }
 
     fn display_board(&self) {
@@ -126,10 +119,34 @@ impl GameManager {
 
 impl MenuFunctions for GameManager {
     // TODO: add startup menu 
-    fn show_menu() {
+    fn enter_main_menu() {}
+    // TODO: yerp
+    fn main_menu_loop() {}
+
+    fn enter_menu(&mut self) {
         println!("\n-- menu --");
         println!("enter \"exit\" to return to the game");
         println!("to show a list of available commands, enter \"help\"");
+        self.menu_loop();
+    }
+
+    fn menu_loop(&mut self) {
+        loop {
+            println!("Enter an option:");
+            let mut option = String::new();
+            io::stdin().read_line(&mut option)
+                .expect("Failed to read option");
+            option = option.trim().to_string();
+
+            self.perform_command(&option);
+            if option == "exit"{
+                break;
+            }
+            else if option == "close" {
+                self.leave_game = true;
+                break;
+            }
+        }
     }
 
     fn perform_command(&mut self, option: &str) {
@@ -143,7 +160,6 @@ impl MenuFunctions for GameManager {
                 // clear the console screen through ANSI codes
                 print!("{}[2J", 27 as char);
                 print!("{}[1;1H", 27 as char);
-                GameManager::show_menu();
             }
             "exit" => println!("Exiting menu.."),
             "close" => self.begin_close(),
