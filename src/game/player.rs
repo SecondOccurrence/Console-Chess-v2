@@ -162,7 +162,6 @@ impl Player {
         self.pieces.clear();
     }
 
-    // TODO: function to get all move directions, iterate through them and concatenate result
     pub fn generate_possible_moves(&mut self) {
         let piece_at_pos = self.current_piece.0;
 
