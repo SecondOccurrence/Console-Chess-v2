@@ -23,12 +23,6 @@ impl Knight {
 }
 
 impl Piece for Knight {
-    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
-        let moves = HashSet::new();
-
-        return moves;
-    }
-
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
         let dir = MoveDirection::Up;
 

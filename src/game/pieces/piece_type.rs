@@ -68,17 +68,6 @@ impl PieceType {
         return s;
     }
 
-    pub fn possible_moves(&mut self, pos: &Position) -> HashSet<Position> {
-        return match self {
-            PieceType::King(king) => king.possible_moves(pos),
-            PieceType::Queen(queen) => queen.possible_moves(pos),
-            PieceType::Rook(rook) => rook.possible_moves(pos),
-            PieceType::Bishop(bishop) => bishop.possible_moves(pos),
-            PieceType::Knight(knight) => knight.possible_moves(pos),
-            PieceType::Pawn(pawn) => pawn.possible_moves(pos),
-        };
-    }
-
     pub fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         return match self {
             PieceType::King(king) => king.invalid_moves(pos, x_diff, y_diff),
