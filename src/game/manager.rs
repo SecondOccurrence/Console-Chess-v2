@@ -10,32 +10,32 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::fs;
 use std::fs::File;
+use std::process;
 
 pub struct GameManager {
     current_side: Side,   
     chess_board: ChessBoard,
     players: [Player; 2],
+    in_game: bool,
     move_again: bool,
     leave_game: bool,
 }
 
 impl GameManager {
     pub fn new() -> GameManager {
-        let current_side = Side::WHITE;
-        let chess_board = ChessBoard::new();
-        let player1 = Player::new(Side::WHITE);
-        let player2 = Player::new(Side::BLACK);
-        let move_again = false;
-        let leave_game = false;
-
         GameManager { 
-            current_side, chess_board, 
-            players: [player1, player2],
-            move_again, leave_game
+            current_side: Side::WHITE,
+            chess_board: ChessBoard::new(),
+            players: [Player::new(Side::WHITE), Player::new(Side::BLACK)],
+            in_game: false,
+            move_again: false,
+            leave_game: false,
         }
     }
 
     pub fn run(&mut self) -> bool {
+        self.in_game = true;
+
         if !self.move_again {
             self.display_board();
         }
@@ -70,7 +70,6 @@ impl GameManager {
                 self.chess_board.update_board(self.players[0].pieces(), self.players[1].pieces());
                 self.current_side.switch();
 
-                // clear the console screen through ANSI codes
                 print!("{}[2J", 27 as char);
                 print!("{}[1;1H", 27 as char);
             }
@@ -81,7 +80,6 @@ impl GameManager {
         }
         else if let None = player_move {
             self.move_again = false;
-            // clear the console screen through ANSI codes
             print!("{}[2J", 27 as char);
             print!("{}[1;1H", 27 as char);
 
@@ -118,10 +116,27 @@ impl GameManager {
 }
 
 impl MenuFunctions for GameManager {
-    // TODO: add startup menu 
-    fn enter_main_menu() {}
-    // TODO: yerp
-    fn main_menu_loop() {}
+    fn enter_main_menu(&mut self) {
+        println!("-- CHESS --\n\nTo start, press ENTER, or type 'help' for a list of commands.");
+        self.main_menu_loop();
+        print!("{}[2J", 27 as char);
+        print!("{}[1;1H", 27 as char);
+    }
+
+    fn main_menu_loop(&mut self) {
+        loop {
+            let mut option = String::new();
+            io::stdin().read_line(&mut option)
+                .expect("Failed to read line");
+            
+            if option == "\n" {
+                break;
+            }
+            else {
+                self.perform_command(&option.trim().to_string());
+            }
+        }
+    }
 
     fn enter_menu(&mut self) {
         println!("\n-- menu --");
@@ -150,36 +165,57 @@ impl MenuFunctions for GameManager {
     }
 
     fn perform_command(&mut self, option: &str) {
-        match option {
-            "help" => self.help_menu(),
-            "show" => self.display_board(),
-            "pieces" => self.show_pieces_count(),
-            "import" => self.import_game(),
-            "export" => self.export_game(),
-            "clear" => {
-                // clear the console screen through ANSI codes
-                print!("{}[2J", 27 as char);
-                print!("{}[1;1H", 27 as char);
+        if self.in_game == true {
+            match option {
+                "help" => self.display_help_menu(),
+                "show" => self.display_board(),
+                "pieces" => self.show_pieces_count(),
+                "import" => self.import_game(),
+                "export" => self.export_game(),
+                "clear" => {
+                    print!("{}[2J", 27 as char);
+                    print!("{}[1;1H", 27 as char);
+                }
+                "exit" => println!("Exiting menu.."),
+                "close" => self.begin_close(),
+                _ => println!("'{}' is not a valid option", option),
             }
-            "exit" => println!("Exiting menu.."),
-            "close" => self.begin_close(),
-            _ => println!("'{}' is not a valid option", option),
+        }
+        else {
+            match option {
+                "help" => self.display_help_menu(),
+                "import" => self.import_game(),
+                "close" => {
+                    print!("{}[2J", 27 as char);
+                    print!("{}[1;1H", 27 as char);
+                    process::exit(0);
+                },
+                _ => println!("'{}' is not a valid option", option),
+            }
         }
     }
 
-    fn help_menu(&self) {
+    fn display_help_menu(&self) {
         println!("\n-- help menu --");
-        println!("the following commands will do the following...\n");
-        println!("\"help\"   => shows this");
-        println!("\"show\"   => shows the current board state");
-        println!("\"pieces\" => shows remaining pieces left on both sides");
-        println!("\"import\" => creates a new game provided a save file using a FEN string");
-        println!("\"export\" => saves the current game");
-        println!("\"clear\"  => clears the screen to show a clean menu");
-        println!("\"exit\"   => return to the game");
-        println!("\"close\"  => close the chess game");
-        println!("-- END --");
-        // TODO: add new print for each available command
+
+        if self.in_game == true {
+            println!("the following commands will do the following...\n");
+            println!("\"help\"   => shows this");
+            println!("\"show\"   => shows the current board state");
+            println!("\"pieces\" => shows remaining pieces left on both sides");
+            println!("\"import\" => creates a new game provided a save file using a FEN string");
+            println!("\"export\" => saves the current game");
+            println!("\"clear\"  => clears the screen to show a clean menu");
+            println!("\"exit\"   => return to the game");
+            println!("\"close\"  => close the chess game");
+        }
+        else {
+            println!("\"help\"   => shows this");
+            println!("\"import\" => creates a new game provided a save file using a FEN string");
+            println!("\"close\"  => close the chess game");
+        }
+
+        println!("-- END --\n");
     }
 
     fn show_pieces_count(&self) {
