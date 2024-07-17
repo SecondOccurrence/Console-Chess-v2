@@ -23,6 +23,15 @@ impl King {
 }
 
 impl Piece for King {
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![
+            MoveDirection::Up,
+            MoveDirection::Down,
+            MoveDirection::Left,
+            MoveDirection::Right
+        ];
+    }
+
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
         let dir = MoveDirection::Up;
 

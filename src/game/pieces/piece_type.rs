@@ -68,6 +68,17 @@ impl PieceType {
         return s;
     }
 
+    pub fn move_directions(&self) -> Vec<MoveDirection> {
+        return match self {
+            PieceType::King(_) => King::move_directions(),
+            PieceType::Queen(_) => Queen::move_directions(),
+            PieceType::Rook(_) => Rook::move_directions(),
+            PieceType::Bishop(_) => Bishop::move_directions(),
+            PieceType::Knight(_) => Bishop::move_directions(),
+            PieceType::Pawn(_) => Pawn::move_directions(),
+        };
+    }
+
     pub fn invalid_moves(&self, pos: &Position, x_diff: i8, y_diff: i8) -> HashSet<Position> {
         return match self {
             PieceType::King(king) => king.invalid_moves(pos, x_diff, y_diff),

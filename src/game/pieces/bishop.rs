@@ -23,6 +23,15 @@ impl Bishop {
 }
 
 impl Piece for Bishop {
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![
+            MoveDirection::UpLeft,
+            MoveDirection::UpRight,
+            MoveDirection::DownLeft,
+            MoveDirection::DownRight,
+        ];
+    }
+
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
         let dir: MoveDirection;
         

@@ -23,7 +23,17 @@ impl Rook {
 }
 
 impl Piece for Rook {
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![
+            MoveDirection::Up,
+            MoveDirection::Down,
+            MoveDirection::Left,
+            MoveDirection::Right,
+        ];
+    }
+
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
+        // TODO: up,down,left,right => determined by x difference or y difference only
         let dir = MoveDirection::Up;
 
         return dir;

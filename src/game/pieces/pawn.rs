@@ -25,6 +25,10 @@ impl Pawn {
 }
 
 impl Piece for Pawn {
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![MoveDirection::Up];
+    }
+
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
         let dir = MoveDirection::Up;
 

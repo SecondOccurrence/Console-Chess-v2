@@ -162,6 +162,7 @@ impl Player {
         self.pieces.clear();
     }
 
+    // TODO: function to get all move directions, iterate through them and concatenate result
     pub fn generate_possible_moves(&mut self) {
         let piece_at_pos = self.current_piece.0;
 
@@ -169,16 +170,11 @@ impl Player {
 
         self.current_piece = (piece_at_pos, self.pieces.get(&piece_at_pos).unwrap().clone());
 
-        let up_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpLeft);
-        let up_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::UpRight);
-        let down_left_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownLeft);
-        let down_right_moves = self.current_piece.1.generate_moves(&piece_at_pos, MoveDirection::DownRight);
-
-        self.possible_moves = up_left_moves
-            .union(&up_right_moves)
-            .cloned()
-            .chain(down_left_moves.union(&down_right_moves).cloned())
-            .collect();
+        let move_directions = self.current_piece.1.move_directions();
+        for dir in move_directions {
+            let moves_in_dir = self.current_piece.1.generate_moves(&piece_at_pos, dir);
+            self.possible_moves.extend(moves_in_dir.iter());
+        }
     }
 
     pub fn prune_possible_moves(&mut self, pieces_to_compare: HashMap<Position, PieceType>, capturing: bool) {
@@ -204,7 +200,6 @@ impl Player {
         }
     }
 
-    // TODO: test
     fn prune_moves(&mut self, moves_to_prune: &HashSet<Position>) { 
         for pruned_move in moves_to_prune {
             if self.possible_moves.contains(&pruned_move) {
@@ -282,7 +277,7 @@ mod tests {
 
         let move_to = Position { x: 3, y: 2 };
 
-        p.apply_move(&move_to);
+        let _ = p.apply_move(&move_to);
     }
 
     #[test]
