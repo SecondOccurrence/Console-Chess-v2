@@ -4,10 +4,14 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 
 pub trait MenuFunctions {
-    fn show_menu();
-    fn perform_command(&mut self, option: &str);
+    fn enter_main_menu(&mut self);
+    fn main_menu_loop(&mut self);
 
-    fn help_menu(&self);
+    fn enter_menu(&mut self);
+    fn menu_loop(&mut self);
+
+    fn perform_command(&mut self, option: &str);
+    fn display_help_menu(&self);
 
     fn show_pieces_count(&self);
     fn tally_pieces(pieces: &HashMap<Position, PieceType>) -> HashMap<char, usize>;
