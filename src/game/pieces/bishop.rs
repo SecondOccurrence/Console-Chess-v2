@@ -100,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn test_move_pruning() {
+    fn test_move_generation() {
         let collision_piece = Position { x: 4, y: 4 };
 
         {
