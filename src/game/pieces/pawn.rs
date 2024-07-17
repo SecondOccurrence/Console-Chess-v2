@@ -25,12 +25,8 @@ impl Pawn {
 }
 
 impl Piece for Pawn {
-    // TODO: return tuple (standard, capture), other pieces has this duplicate, see if can check
-    // TODO: ^ see if can check equality for less checks
-    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
-        let moves = HashSet::new();
-
-        return moves;
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![MoveDirection::Up];
     }
 
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {

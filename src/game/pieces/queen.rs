@@ -23,10 +23,17 @@ impl Queen {
 }
 
 impl Piece for Queen {
-    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
-        let moves = HashSet::new();
-
-        return moves;
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![
+            MoveDirection::Up,
+            MoveDirection::Down,
+            MoveDirection::Left,
+            MoveDirection::Right,
+            MoveDirection::UpLeft,
+            MoveDirection::UpRight,
+            MoveDirection::DownLeft,
+            MoveDirection::DownRight
+        ];
     }
 
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {

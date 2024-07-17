@@ -68,14 +68,14 @@ impl PieceType {
         return s;
     }
 
-    pub fn possible_moves(&mut self, pos: &Position) -> HashSet<Position> {
+    pub fn move_directions(&self) -> Vec<MoveDirection> {
         return match self {
-            PieceType::King(king) => king.possible_moves(pos),
-            PieceType::Queen(queen) => queen.possible_moves(pos),
-            PieceType::Rook(rook) => rook.possible_moves(pos),
-            PieceType::Bishop(bishop) => bishop.possible_moves(pos),
-            PieceType::Knight(knight) => knight.possible_moves(pos),
-            PieceType::Pawn(pawn) => pawn.possible_moves(pos),
+            PieceType::King(_) => King::move_directions(),
+            PieceType::Queen(_) => Queen::move_directions(),
+            PieceType::Rook(_) => Rook::move_directions(),
+            PieceType::Bishop(_) => Bishop::move_directions(),
+            PieceType::Knight(_) => Bishop::move_directions(),
+            PieceType::Pawn(_) => Pawn::move_directions(),
         };
     }
 

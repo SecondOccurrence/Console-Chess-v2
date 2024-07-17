@@ -23,10 +23,13 @@ impl Bishop {
 }
 
 impl Piece for Bishop {
-    fn possible_moves(&mut self, initial_pos: &Position) -> HashSet<Position> {
-        let moves = HashSet::new();
-
-        return moves;
+    fn move_directions() -> Vec<MoveDirection> {
+        return vec![
+            MoveDirection::UpLeft,
+            MoveDirection::UpRight,
+            MoveDirection::DownLeft,
+            MoveDirection::DownRight,
+        ];
     }
 
     fn find_prune_direction(&self, x_diff: i8, y_diff: i8) -> MoveDirection {
@@ -97,7 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn test_move_pruning() {
+    fn test_move_generation() {
         let collision_piece = Position { x: 4, y: 4 };
 
         {
